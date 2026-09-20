@@ -63,4 +63,5 @@ services:
       - homepage.widget.type=jellyfin
       - homepage.widget.url=http://jellyfin:8096
       - homepage.widget.key=c7df7458078649d1aa388e10e30113e2
+      - homepage.widget.version=2
       - homepage.widget.fields=["movies","tv"]

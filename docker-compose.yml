@@ -115,8 +115,8 @@ include:
   # - compose/$HOSTNAME/airdcpp.yml
   # PVRS
   - compose/$HOSTNAME/sonarr.yml
-  - compose/$HOSTNAME/jellyseerr.yml
   - compose/$HOSTNAME/jellyseerr-exporter.yml
+  - compose/$HOSTNAME/seerr.yml
   - compose/$HOSTNAME/radarr.yml
   - compose/$HOSTNAME/audiobookshelf.yml
   # COMPLEMENTARY APPS

@@ -11,5 +11,5 @@ services:
     ports:
       - 9850:9850
     command:
-      - '--jellyseerr.address=http://jellyseerr:5055'
+      - '--jellyseerr.address=http://seerr:5055'
       - '--jellyseerr.apiKey=$JELLYSEERR_API_KEY'
