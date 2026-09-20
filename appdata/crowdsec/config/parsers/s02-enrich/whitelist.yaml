@@ -4,6 +4,7 @@ whitelist:
   reason: "Home server public IP and local network"
   ip:
     - "127.0.0.1"
+    - "66.186.216.157" # Katie's IP  - trusted
   cidr:
     - "192.168.0.0/24"
     - "192.168.90.0/24"

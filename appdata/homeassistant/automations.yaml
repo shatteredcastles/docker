@@ -42,31 +42,6 @@
       media_content_type: ''
     metadata: {}
   mode: single
-- id: '1753568362597'
-  alias: Person Detected No Image
-  description: ''
-  triggers:
-  - type: occupied
-    device_id: 244afe6cd26c81ce9f8ca04437331213
-    entity_id: 1ee2d3a0ce07c933d3d7006c93ba00fd
-    domain: binary_sensor
-    trigger: device
-    for:
-      hours: 0
-      minutes: 0
-      seconds: 1
-  conditions: []
-  actions:
-  - action: notify.pushover
-    metadata: {}
-    data:
-      message: 'A person has been detected on the property. '
-      data:
-        attachment: /config/www/reolink_person.jpg
-        url: https://frigate.shatteredcastle.com/review
-        url_title: Review Here
-      title: Front Door
-  mode: single
 - id: '1754174035245'
   alias: Frigate Notification
   description: ''
@@ -215,4 +190,65 @@
       entity_id: light.all_lights
     data:
       transition: 51
+  mode: single
+- id: '1787513897627'
+  alias: Weekday morning lights
+  description: ''
+  triggers:
+  - trigger: time
+    at: 06:45:00
+    weekday:
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+  conditions:
+  - condition: zone.in_zone
+    target:
+      entity_id: person.james_2
+    options:
+      behavior: any
+      for: 00:00:00
+      zone: zone.home
+  actions:
+  - action: light.turn_on
+    metadata: {}
+    data:
+      transition: 300
+      brightness_pct: 70
+    target:
+      entity_id:
+      - light.bedroom
+      - light.kitchen
+      - light.living_room_3
+  mode: single
+- id: '1787514245195'
+  alias: Weekend morning lights
+  description: ''
+  triggers:
+  - trigger: time
+    at: 07:15:00
+    weekday:
+    - sun
+    - sat
+  conditions:
+  - condition: zone.in_zone
+    target:
+      entity_id: person.james_2
+    options:
+      behavior: any
+      for: 00:00:00
+      zone: zone.home
+  actions:
+  - action: light.turn_on
+    metadata: {}
+    data:
+      transition: 300
+      brightness_pct: 70
+    target:
+      entity_id:
+      - light.bedroom
+      - light.kitchen
+      - light.living_room_3
   mode: single

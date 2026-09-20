@@ -53,8 +53,6 @@ cameras:
         days: 2
       motion:
         days: 3
-      export:
-        timelapse_args: -vf setpts=0.04*PTS -r 30
     snapshots:
       enabled: true
       timestamp: true
@@ -66,7 +64,11 @@ cameras:
         - person
         - package
         - car
-      mask: 0.083,0.586,0.09,0.661,0.129,0.653,0.132,0.58
+      mask:
+        object_mask_1:
+          friendly_name: Object Mask 1
+          enabled: true
+          coordinates: 0.083,0.586,0.09,0.661,0.129,0.653,0.132,0.58
     zones:
       onproperty:
         coordinates: 
@@ -113,8 +115,6 @@ cameras:
         days: 2
       motion:
         days: 3
-      export:
-        timelapse_args: -vf setpts=0.04*PTS -r 30
     snapshots:
       enabled: true
       timestamp: true
@@ -127,7 +127,11 @@ cameras:
         - car
       filters:
         car:
-          mask: 0.932,0.447,0.811,0.131,0.784,0.234,0.88,0.591
+          mask:
+            object_mask_1:
+              friendly_name: Object Mask 1 (car)
+              enabled: true
+              coordinates: 0.932,0.447,0.811,0.131,0.784,0.234,0.88,0.591
 detectors:
   ov:
     type: openvino
@@ -140,6 +144,6 @@ model:
   input_pixel_format: bgr
   path: /openvino-model/ssdlite_mobilenet_v2.xml
   labelmap_path: /openvino-model/coco_91cl_bkgr.txt
-version: 0.17-0
+version: 0.18-0
 detect:
   enabled: true

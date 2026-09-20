@@ -5,17 +5,17 @@ homeassistant:
     external_url: "https://haos.shatteredcastle.com" # provide your subdomain and domain, with no port
     internal_url: "http://192.168.0.56:8123" # local address with port
 
-http:
-  use_x_forwarded_for: true
-  ip_ban_enabled: false
-  trusted_proxies:
-    - 127.0.0.0/24
-    - ::1
-    - 192.168.90.0/24  # Adjust this to match your Docker subnet
-    - 192.168.91.0/24
-    - 192.168.0.0/24  # local LAN subnet
-    - 172.17.0.0/24
-    - 172.19.0.0/24
+# http:
+#   use_x_forwarded_for: true
+#   ip_ban_enabled: false
+#   trusted_proxies:
+#     - 127.0.0.0/24
+#     - ::1
+#     - 192.168.90.0/24  # Adjust this to match your Docker subnet
+#     - 192.168.91.0/24
+#     - 192.168.0.0/24  # local LAN subnet
+#     - 172.17.0.0/24
+#     - 172.19.0.0/24
 
 
 # Load frontend themes from the themes folder
