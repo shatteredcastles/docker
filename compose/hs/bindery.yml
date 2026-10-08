@@ -1,0 +1,38 @@
+services:
+  # Bindery - Ebook & Audiobook Manager (Readarr replacement)
+  bindery:
+    image: ghcr.io/vavallee/bindery:latest
+    container_name: bindery
+    user: "1000:1000"
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    networks:
+      - t3_proxy
+    volumes:
+      - $DOCKERDIR/appdata/bindery:/config
+      - $MEDIADIR/Books:/books
+      - $DOWNLOADSDIR:/downloads
+    environment:
+      TZ: $TZ
+      BINDERY_PUID: 1000
+      BINDERY_PGID: 1000
+      BINDERY_LIBRARY_DIR: /books/eBooks
+      BINDERY_AUDIOBOOK_DIR: /books/Audiobooks
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.bindery-rtr.entrypoints=websecure"
+      - "traefik.http.routers.bindery-rtr.rule=Host(`bindery.$DOMAINNAME`)"
+      # Middlewares
+      - "traefik.http.routers.bindery-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.bindery-rtr.service=bindery-svc"
+      - "traefik.http.services.bindery-svc.loadbalancer.server.port=8787"
+      # UPDATE IMAGE
+      - "com.centurylinklabs.watchtower.enable=true"
+      # Homepage Setup
+      - homepage.group=Media Stack
+      - homepage.name=Bindery
+      - homepage.href=http://bindery.$DOMAINNAME
+      - homepage.weight=5

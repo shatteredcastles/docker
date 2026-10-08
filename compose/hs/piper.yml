@@ -1,0 +1,14 @@
+services:
+  piper:
+    container_name: piper
+    image: rhasspy/wyoming-piper:latest
+    restart: unless-stopped
+    ports:
+      - "10200:10200"
+    volumes:
+      - $DOCKERDIR/appdata/piper:/data
+    command: --voice en_US-lessac-medium --length-scale 1.2
+    environment:
+      - TZ=$TZ
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"

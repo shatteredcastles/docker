@@ -1,0 +1,18 @@
+services:
+  music-assistant:
+    container_name: music-assistant
+    image: ghcr.io/music-assistant/server:stable
+    restart: unless-stopped
+    # Host networking is required for player discovery (Sonos SSDP/mDNS, Chromecast, AirPlay).
+    network_mode: host
+    volumes:
+      - $DOCKERDIR/appdata/music-assistant:/data
+    environment:
+      - TZ=$TZ
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - homepage.group=Smart Home
+      - homepage.name=Music Assistant
+      - homepage.icon=music-assistant.png
+      - homepage.href=http://192.168.0.56:8095
+      - homepage.description=Sonos/media player control

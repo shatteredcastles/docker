@@ -54,3 +54,16 @@ template:
         device_class: water
         state_class: total_increasing
 
+rest_command:
+  fetch_npr_feed:
+    url: "https://api.npr.org/query?id=3&output=podcast&apiKey=MDA0NjI1NjgyMDEyNjM1MDIyNjE5ZDBlMQ010"
+    method: GET
+    timeout: 10
+  fetch_cnbc_feed:
+    url: "https://feeds.simplecast.com/Q_DAkYfy"
+    method: GET
+    timeout: 10
+  fetch_marketplace_feed:
+    url: "https://feeds.publicradio.org/public_feeds/marketplace-morning-report"
+    method: GET
+    timeout: 10

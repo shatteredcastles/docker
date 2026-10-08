@@ -1,46 +1,18 @@
 - id: 122d88330d284493b42802e5a5cad27f
-  alias: Run Morning Briefing at 7:30 AM (Only if James is Home)
-  description: ''
-  triggers:
-  - at: 07:30:00
-    trigger: time
-  conditions: []
-  actions:
-  - action: media_player.browse_media
-    metadata: {}
-    target:
-      entity_id: media_player.living_room_2
-    data:
-      media_content_id: https://npr-ice.streamguys1.com/live.mp3
-  - action: media_player.media_play
-    metadata: {}
-    target:
-      entity_id: media_player.living_room_2
-    data: {}
-  - action: script.morning_briefing
-    data: {}
-    enabled: false
-- id: '1752340703541'
-  alias: New automation
-  description: ''
+  alias: Morning Routine
+  description: Time, calendar, weather, and news briefing on the living room Sonos
   triggers: []
-  conditions: []
-  actions:
-  - action: tts.google_say
-    metadata: {}
-    data:
-      cache: false
-      message: '  Good morning! Currently it is {{ state_attr(''Met.no.forecast'',
-        ''temperature'') }} degrees and {{ states(''weather.openweathermap'') }}.
-        The high today will be {{state_attr(''weather.forecast'',''high'') }}'
-      entity_id: media_player.all_speakers_2
-  - action: media_player.play_media
+  conditions:
+  - condition: zone.in_zone
     target:
-      entity_id: media_player.all_speakers_2
-    data:
-      media_content_id: ''
-      media_content_type: ''
-    metadata: {}
+      entity_id: person.james_2
+    options:
+      behavior: any
+      for: 00:00:00
+      zone: zone.home
+  actions:
+  - action: script.morning_routine
+    data: {}
   mode: single
 - id: '1754174035245'
   alias: Frigate Notification
@@ -79,9 +51,9 @@
   alias: Leaving Home
   description: ''
   triggers:
-  - device_id: e811ed63dafb72e77010ab4e3f443329
+  - device_id: b6cd1d99875678e2d5e68674aba6a4b3
     domain: device_tracker
-    entity_id: 2213eddbe44fdea9b161d5f3ba5f8e3d
+    entity_id: 7073318b6a3e590eefabc3526846cc27
     type: leaves
     trigger: device
     zone: zone.home
@@ -146,9 +118,9 @@
   alias: Arriving Home - Lights On
   description: ''
   triggers:
-  - device_id: e811ed63dafb72e77010ab4e3f443329
+  - device_id: b6cd1d99875678e2d5e68674aba6a4b3
     domain: device_tracker
-    entity_id: 2213eddbe44fdea9b161d5f3ba5f8e3d
+    entity_id: 7073318b6a3e590eefabc3526846cc27
     type: enters
     trigger: device
     zone: zone.home
@@ -196,7 +168,7 @@
   description: ''
   triggers:
   - trigger: time
-    at: 06:45:00
+    at: 06:15:00
     weekday:
     - mon
     - tue

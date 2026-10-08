@@ -1,183 +1,118 @@
-morning_briefing:
-  alias: Morning Briefing - Simple
-  description: Basic morning briefing with TTS and NPR stream
+morning_routine:
+  alias: Morning Routine
+  description: Time, calendar, weather, and news briefing on the living room Sonos
   sequence:
   - alias: Set volume
     action: media_player.volume_set
     target:
-      entity_id: media_player.living_room_2
+      entity_id: media_player.sonos_living_room
     data:
-      volume_level: 0.35
-  - alias: Greet and announce weather
-    action: tts.google_say
+      volume_level: 0.4
+  - alias: Greet with time and date
+    action: tts.speak
     target:
-      entity_id: media_player.living_room_2
+      entity_id: tts.piper
     data:
-      message: Good morning, James! {{ now().strftime('%A, %B %d') }}
-  - alias: Wait after greeting
-    delay: 00:00:05
-  - alias: Play NPR Live Stream
-    action: media_player.play_media
-    target:
-      entity_id: media_player.living_room_2
-    data:
-      media_content_id: https://npr-ice.streamguys1.com/live.mp3
-      media_content_type: audio/mpeg
-  mode: single
-morning_briefing_full:
-  alias: Morning Briefing - Extended
-  description: Extended morning briefing with weather and NPR news stream
-  sequence:
-  - alias: Set briefing volume
-    action: media_player.volume_set
-    target:
-      entity_id: media_player.living_room_2
-    data:
-      volume_level: 0.35
-  - alias: Announce weather and greeting
-    action: tts.google_say
-    target:
-      entity_id: media_player.living_room_2
-    data:
-      message: >
-        Good morning! Today is {{ now().strftime('%A, %B %d, %Y') }}.
-        {% if states('weather.openweathermap', 'unknown') != 'unknown' %}
-        The forecast calls for {{ states('weather.openweathermap') | replace('_', ' ') | title }}.
+      media_player_entity_id: media_player.sonos_living_room
+      options:
+        voice: en_GB-vctk-medium
+      message: >-
+        {% set hour = now().strftime('%-I') %}
+        {% set minute = now().minute %}
+        {% set ampm = now().strftime('%p') %}
+        {% if minute == 0 %}
+          {% set time_phrase = hour ~ ' ' ~ ampm %}
+        {% elif minute < 10 %}
+          {% set time_phrase = hour ~ ' oh ' ~ minute ~ ' ' ~ ampm %}
+        {% else %}
+          {% set time_phrase = hour ~ ':' ~ '%02d' % minute ~ ' ' ~ ampm %}
         {% endif %}
-    enabled: false
-  - alias: Wait for TTS to finish
-    delay:
-      seconds: 8
-    enabled: false
-  - alias: Play NPR News Stream (Extended)
-    action: media_player.play_media
+        Good morning! It's {{ time_phrase }} on {{ now().strftime('%A, %B %-d') }}.
+  - alias: Get today's calendar events
+    action: calendar.get_events
     target:
-      entity_id: media_player.living_room_2
+      entity_id:
+      - calendar.jeearle_gmail_com
+      - calendar.family
     data:
-      media_content_id: https://npr-ice.streamguys1.com/live.mp3
-      media_content_type: audio/mpeg
-      extra:
-        enqueue: replace
-  - alias: Log completion
-    action: logbook.log
+      start_date_time: "{{ now().replace(hour=0, minute=0, second=0, microsecond=0) }}"
+      end_date_time: "{{ now().replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1) }}"
+    response_variable: todays_events
+  - alias: Announce calendar
+    action: tts.speak
+    target:
+      entity_id: tts.piper
     data:
-      name: Morning Briefing
-      message: Morning briefing sequence completed.
-      entity_id: media_player.living_room_2
+      media_player_entity_id: media_player.sonos_living_room
+      options:
+        voice: en_GB-vctk-medium
+      message: >-
+        {% set events = (todays_events.get('calendar.jeearle_gmail_com', {}).get('events', [])
+           + todays_events.get('calendar.family', {}).get('events', []))
+           | sort(attribute='start') %}
+        {% if events | length == 0 %}
+        You have nothing on your calendar today.
+        {% else %}
+        On your calendar today:
+        {% for e in events %}{{ e.summary }}{% if 'T' in e.start %} at {{ as_datetime(e.start).strftime('%-I:%M %p') }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}.
+        {% endif %}
+  - alias: Get weather forecast
+    action: weather.get_forecasts
+    target:
+      entity_id: weather.home
+    data:
+      type: daily
+    response_variable: weather_forecast
+  - alias: Announce weather
+    action: tts.speak
+    target:
+      entity_id: tts.piper
+    data:
+      media_player_entity_id: media_player.sonos_living_room
+      options:
+        voice: en_GB-vctk-medium
+      message: >-
+        {% set today = weather_forecast['weather.home']['forecast'][0] %}
+        {% set tomorrow = weather_forecast['weather.home']['forecast'][1] %}
+        Right now it's {{ state_attr('weather.home', 'temperature') }} degrees and {{ states('weather.home') | replace('-', ' ') }}.
+        Today's high will be {{ today.temperature }} with a low of {{ today.templow }}.
+        Tomorrow, expect a high of {{ tomorrow.temperature }} and {{ tomorrow.condition | replace('-', ' ') }}.
+  - alias: Fetch NPR feed
+    action: rest_command.fetch_npr_feed
+    response_variable: npr_feed
+  - alias: Fetch CNBC Tech Check feed
+    action: rest_command.fetch_cnbc_feed
+    response_variable: cnbc_feed
+  - alias: Fetch Marketplace Morning Report feed
+    action: rest_command.fetch_marketplace_feed
+    response_variable: marketplace_feed
+  - alias: Play NPR Update
+    action: music_assistant.play_media
+    target:
+      entity_id: media_player.sonos_living_room
+    data:
+      media_id: '{{ (npr_feed["content"] | regex_findall("<enclosure[^>]*url=\"([^\"]+)\""))[0] | replace("&amp;", "&") }}'
+      enqueue: replace
+  - alias: Queue CNBC Tech Check
+    action: music_assistant.play_media
+    target:
+      entity_id: media_player.sonos_living_room
+    data:
+      media_id: '{{ (cnbc_feed["content"] | regex_findall("<enclosure[^>]*url=\"([^\"]+)\""))[0] | replace("&amp;", "&") }}'
+      enqueue: add
+  - alias: Queue Marketplace Morning Report
+    action: music_assistant.play_media
+    target:
+      entity_id: media_player.sonos_living_room
+    data:
+      media_id: '{{ (marketplace_feed["content"] | regex_findall("<enclosure[^>]*url=\"([^\"]+)\""))[0] | replace("&amp;", "&") }}'
+      enqueue: add
   mode: single
-  max_exceeded: silent
-stop_briefing:
-  alias: Stop Morning Briefing
-  description: Stops the current media playback
+stop_morning_routine:
+  alias: Stop Morning Routine
+  description: Stops the morning routine playback
   sequence:
   - action: media_player.media_stop
     target:
-      entity_id: media_player.living_room_2
-    data: {}
+      entity_id: media_player.sonos_living_room
   mode: single
-quick_briefing:
-  alias: Quick Briefing - Weather & News
-  description: Quick version with just weather announcement and NPR stream (5 min)
-  sequence:
-  - alias: Set volume
-    action: media_player.volume_set
-    target:
-      entity_id: media_player.living_room_2
-    data:
-      volume_level: 0.4
-  - alias: Morning greeting
-    action: tts.google_say
-    target:
-      entity_id: media_player.living_room_2
-    data:
-      message: >
-        Good morning! {{ now().strftime('%A') }}.
-        {% if states('weather.openweathermap', 'unknown') != 'unknown' %}
-        Expect {{ states('weather.openweathermap') | replace('_', ' ') | title }}.
-        {% endif %}
-        Here's the news.
-  - alias: Wait for TTS
-    delay:
-      seconds: 5
-  - alias: Play NPR
-    action: media_player.play_media
-    target:
-      entity_id: media_player.living_room_2
-    data:
-      media_content_id: https://npr-ice.streamguys1.com/live.mp3
-      media_content_type: audio/mpeg
-  mode: single
-morning_briefing_test:
-  sequence:
-  - alias: Set briefing volume
-    action: media_player.volume_set
-    target:
-      entity_id: media_player.living_room_2
-    data:
-      volume_level: 0.35
-  - alias: Announce weather
-    action: tts.google_say
-    target:
-      entity_id: media_player.living_room_2
-    data:
-      cache: false
-      message: >
-        Good morning! Here is your weather briefing for Longmont. Today expect
-        {{ states('sensor.longmont_weather_condition') | default('partly sunny') }}
-        with a high of {{ states('sensor.longmont_temperature_high') | default('77') }}
-        degrees.
-        {% set precip = states('sensor.longmont_precipitation_chance') | int(25) %}
-        {% if precip >= 50 %}
-        There is a {{ precip }} percent chance of precipitation today — don't forget an umbrella.
-        {% elif precip >= 25 %}
-        There is a slight {{ precip }} percent chance of rain, so keep that in mind if you're heading out.
-        {% else %}
-        Skies look mostly clear with only a {{ precip }} percent chance of rain.
-        {% endif %}
-        Coming up: your morning news briefings.
-  - alias: Wait for TTS
-    delay:
-      seconds: 2
-  - alias: Play NPR Morning Briefing
-    action: media_player.play_media
-    target:
-      entity_id: media_player.living_room_2
-    data:
-      media_content_id: https://feeds.npr.org/500005/podcast.xml
-      media_content_type: music
-      extra:
-        enqueue: replace
-  - alias: Wait for NPR
-    wait_template: '{{ states(''media_player.living_room_2'') == ''idle'' }}'
-    timeout:
-      minutes: 15
-    continue_on_timeout: true
-  - alias: Play CNBC Tech Check
-    action: media_player.play_media
-    target:
-      entity_id: media_player.living_room_2
-    data:
-      media_content_id: https://feeds.megaphone.fm/CNBC9460649024
-      media_content_type: music
-      extra:
-        enqueue: replace
-  - alias: Wait for CNBC Tech Check
-    wait_template: '{{ states(''media_player.living_room_2'') == ''idle'' }}'
-    timeout:
-      minutes: 40
-    continue_on_timeout: true
-  - alias: Play Marketplace Morning Report
-    action: media_player.play_media
-    target:
-      entity_id: media_player.living_room_2
-    data:
-      media_content_id: https://www.marketplace.org/feed/podcast/marketplace-morning-report/
-      media_content_type: music
-      extra:
-        enqueue: replace
-  - alias: Log completion
-    action: logbook.log
-    data:
-      name: Morning Briefing
-      message: Morning briefing sequence completed.
-      entity_id: media_player.living_room_2
