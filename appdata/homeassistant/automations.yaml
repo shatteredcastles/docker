@@ -224,3 +224,123 @@
       - light.kitchen
       - light.living_room_3
   mode: single
+- id: wall_tablet_doorbell
+  alias: Wall tablet - doorbell
+  description: Wake both wall tablets and show the door camera when Frigate sees a person on the walkway (Approach zone); go back to Home once they leave.
+  mode: restart
+  triggers:
+  - trigger: state
+    entity_id: binary_sensor.approach_person_occupancy
+    to: 'on'
+  actions:
+  - action: switch.turn_on
+    target:
+      entity_id:
+      - switch.james_s_tab_a11_screen
+      - switch.tcl_tab_a1_plus_nxtpaper_screen
+  - action: switch.turn_off
+    continue_on_error: true
+    target:
+      entity_id:
+      - switch.james_s_tab_a11_screensaver
+      - switch.tcl_tab_a1_plus_nxtpaper_screensaver
+  - action: number.set_value
+    continue_on_error: true
+    target:
+      entity_id:
+      - number.james_s_tab_a11_screen_brightness
+      - number.tcl_tab_a1_plus_nxtpaper_screen_brightness
+    data:
+      value: 255
+  - parallel:
+    - action: fully_kiosk.load_url
+      continue_on_error: true
+      target:
+        device_id: 014a895aa28204b10c1bc810bdc623e7
+      data:
+        url: http://192.168.0.56:8123/wall-tablet/door
+    - action: fully_kiosk.load_url
+      continue_on_error: true
+      target:
+        device_id: b724f1a4e02b673d55423ba96fe6beb2
+      data:
+        url: http://192.168.0.56:8123/wall-panel/door
+  - wait_for_trigger:
+    - trigger: state
+      entity_id: binary_sensor.approach_person_occupancy
+      to: 'off'
+      for: '00:01:00'
+    timeout: '00:10:00'
+    continue_on_timeout: true
+  - action: button.press
+    continue_on_error: true
+    target:
+      entity_id:
+      - button.james_s_tab_a11_load_start_url
+      - button.tcl_tab_a1_plus_nxtpaper_load_start_url
+  - action: automation.trigger
+    target:
+      entity_id: automation.wall_tablet_brightness_schedule
+    data:
+      skip_condition: true
+- id: wall_tablet_brightness
+  alias: Wall tablet - brightness schedule
+  description: Both wall tablets. Bright during the day, softer after sunset, very dim overnight (22:00-06:30). Day - Immich photo screensaver after 2 min idle. Night - no screensaver, screen off after 2 min idle (motion wakes it).
+  mode: restart
+  triggers:
+  - trigger: time
+    at: '06:30:00'
+  - trigger: time
+    at: '22:00:00'
+  - trigger: sun
+    event: sunrise
+  - trigger: sun
+    event: sunset
+  - trigger: homeassistant
+    event: start
+  actions:
+  - variables:
+      night: "{% set t = now().strftime('%H:%M') %}{{ t >= '22:00' or t < '06:30' }}"
+  - action: number.set_value
+    continue_on_error: true
+    target:
+      entity_id:
+      - number.james_s_tab_a11_screen_brightness
+      - number.tcl_tab_a1_plus_nxtpaper_screen_brightness
+    data:
+      value: >-
+        {% if night %}15
+        {% elif is_state('sun.sun', 'below_horizon') %}90
+        {% else %}200{% endif %}
+  - action: number.set_value
+    continue_on_error: true
+    target:
+      entity_id:
+      - number.james_s_tab_a11_screensaver_timer
+      - number.tcl_tab_a1_plus_nxtpaper_screensaver_timer
+    data:
+      value: "{{ 0 if night else 120 }}"
+  - action: number.set_value
+    continue_on_error: true
+    target:
+      entity_id:
+      - number.james_s_tab_a11_screen_off_timer
+      - number.tcl_tab_a1_plus_nxtpaper_screen_off_timer
+    data:
+      value: "{{ 120 if night else 0 }}"
+- id: mealie_dinner_reminder
+  alias: Dinner prep reminder
+  description: 3 PM Pushover reminder of tonight's Mealie dinner, only when one is planned.
+  mode: single
+  triggers:
+  - trigger: time
+    at: '15:00:00'
+  conditions:
+  - condition: state
+    entity_id: calendar.mealie_dinner
+    state: 'on'
+  actions:
+  - action: notify.pushover
+    data:
+      title: Dinner tonight
+      message: "{{ state_attr('calendar.mealie_dinner', 'message') | replace(' Recipe', '') }}. Anything to defrost or prep?"

@@ -1,0 +1,38 @@
+services:
+  # Immich Kiosk - full-screen slideshow of an Immich album (wall tablet screensaver)
+  # https://docs.immichkiosk.app
+  immich-kiosk:
+    container_name: immich-kiosk
+    image: ghcr.io/damongolding/immich-kiosk:latest
+
+    networks:
+      - t3_proxy
+    ports:
+      - $IMMICH_KIOSK_PORT:3000
+
+    security_opt:
+      - no-new-privileges:true
+
+    restart: unless-stopped
+
+    volumes:
+      # config.yaml: album, clock and weather settings
+      - $DOCKERDIR/appdata/immich-kiosk/config:/config
+
+    environment:
+      - TZ=$TZ
+      - LANG=en_US
+      - KIOSK_IMMICH_URL=http://immich_server:2283
+      # Read-only key (asset/album read only), created for this service
+      - KIOSK_IMMICH_API_KEY=$IMMICH_KIOSK_API_KEY
+
+    healthcheck:
+      test: ["CMD", "/kiosk", "--healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+    labels:
+      - "traefik.enable=false"
+      # UPDATE IMAGE - if watchtower should update this image
+      - "com.centurylinklabs.watchtower.enable=true"

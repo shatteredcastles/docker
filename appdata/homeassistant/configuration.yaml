@@ -38,6 +38,10 @@ influxdb:
   organization: "ShatteredCastle"
   bucket: "homeassistant"
   ssl: false
+input_boolean:
+  wall_tablet_hide_katie:
+    name: Hide Katie on wall tablet
+    icon: mdi:account-off
 input_number:
   irrigation_total_gal:
     name: Irrigation Total (gal)
@@ -53,6 +57,149 @@ template:
         unit_of_measurement: "gal"
         device_class: water
         state_class: total_increasing
+  # Where people are, for the wall tablet: Home / At work / Heading home / Away.
+  # Trigger-based so each can compare against its own previous distance
+  # (this.attributes) to tell which way they're travelling. Drive time comes
+  # from the Waze Travel Time sensors sensor.<name>_eta_home when they exist,
+  # otherwise the distance in miles is shown.
+  - triggers:
+      - trigger: state
+        entity_id: person.james_2
+      - trigger: state
+        entity_id: sensor.james_eta_home
+      - trigger: homeassistant
+        event: start
+    sensor:
+      - name: "James location"
+        unique_id: james_location_status
+        icon: >-
+          {% set s = states('person.james_2') %}
+          {% if s == 'home' %}mdi:home-account
+          {% elif s == 'Work' %}mdi:briefcase
+          {% elif s in ['unknown', 'unavailable'] %}mdi:account-question
+          {% elif this.attributes.direction | default('') == 'towards' %}mdi:home-import-outline
+          {% else %}mdi:map-marker-distance{% endif %}
+        state: >-
+          {% set s = states('person.james_2') %}
+          {% set d = (distance('person.james_2') if has_value('person.james_2') else none) %}
+          {% set prev = this.attributes.distance_mi | default(none) %}
+          {% set dir = this.attributes.direction | default('unknown') %}
+          {% if d is number and prev is number %}
+            {% set dir = 'towards' if d < prev - 0.25 else ('away' if d > prev + 0.25 else dir) %}
+          {% endif %}
+          {% set eta = states('sensor.james_eta_home') | float(none) %}
+          {% set far = (d | round(0) | int if d >= 10 else d | round(1)) ~ ' mi' if d is number else '' %}
+          {% set howfar = ((eta // 60) | int ~ ' h ' ~ (eta % 60) | int ~ ' min' if eta >= 60 else eta | int ~ ' min') if eta is number else far %}
+          {% if states.person.james_2 is none %}Not set up
+          {% elif s == 'home' %}Home
+          {% elif s == 'Work' %}At work{{ ' · ' ~ howfar if eta is number else '' }}
+          {% elif d is not number %}Unknown
+          {% elif dir == 'towards' %}Heading home · {{ howfar }}
+          {% elif s != 'not_home' %}{{ s }}
+          {% else %}Away · {{ howfar }}{% endif %}
+        attributes:
+          distance_mi: >-
+            {% set d = (distance('person.james_2') if has_value('person.james_2') else none) %}
+            {{ d | round(2) if d is number else none }}
+          direction: >-
+            {% set s = states('person.james_2') %}
+            {% set d = (distance('person.james_2') if has_value('person.james_2') else none) %}
+            {% set prev = this.attributes.distance_mi | default(none) %}
+            {% set dir = this.attributes.direction | default('unknown') %}
+            {% if s == 'home' %}arrived
+            {% elif d is number and prev is number %}
+              {{ 'towards' if d < prev - 0.25 else ('away' if d > prev + 0.25 else dir) }}
+            {% else %}{{ dir }}{% endif %}
+  # Katie: placeholder until she has the HA Companion app (person.katie).
+  - triggers:
+      - trigger: state
+        entity_id: person.katie
+      - trigger: state
+        entity_id: sensor.katie_eta_home
+      - trigger: homeassistant
+        event: start
+    sensor:
+      - name: "Katie location"
+        unique_id: katie_location_status
+        icon: >-
+          {% set s = states('person.katie') %}
+          {% if s == 'home' %}mdi:home-account
+          {% elif s == 'Work' %}mdi:briefcase
+          {% elif s in ['unknown', 'unavailable'] %}mdi:account-question
+          {% elif this.attributes.direction | default('') == 'towards' %}mdi:home-import-outline
+          {% else %}mdi:map-marker-distance{% endif %}
+        state: >-
+          {% set s = states('person.katie') %}
+          {% set d = (distance('person.katie') if has_value('person.katie') else none) %}
+          {% set prev = this.attributes.distance_mi | default(none) %}
+          {% set dir = this.attributes.direction | default('unknown') %}
+          {% if d is number and prev is number %}
+            {% set dir = 'towards' if d < prev - 0.25 else ('away' if d > prev + 0.25 else dir) %}
+          {% endif %}
+          {% set eta = states('sensor.katie_eta_home') | float(none) %}
+          {% set far = (d | round(0) | int if d >= 10 else d | round(1)) ~ ' mi' if d is number else '' %}
+          {% set howfar = ((eta // 60) | int ~ ' h ' ~ (eta % 60) | int ~ ' min' if eta >= 60 else eta | int ~ ' min') if eta is number else far %}
+          {% if states.person.katie is none %}Not set up
+          {% elif s == 'home' %}Home
+          {% elif s == 'Work' %}At work{{ ' · ' ~ howfar if eta is number else '' }}
+          {% elif d is not number %}Unknown
+          {% elif dir == 'towards' %}Heading home · {{ howfar }}
+          {% elif s != 'not_home' %}{{ s }}
+          {% else %}Away · {{ howfar }}{% endif %}
+        attributes:
+          distance_mi: >-
+            {% set d = (distance('person.katie') if has_value('person.katie') else none) %}
+            {{ d | round(2) if d is number else none }}
+          direction: >-
+            {% set s = states('person.katie') %}
+            {% set d = (distance('person.katie') if has_value('person.katie') else none) %}
+            {% set prev = this.attributes.distance_mi | default(none) %}
+            {% set dir = this.attributes.direction | default('unknown') %}
+            {% if s == 'home' %}arrived
+            {% elif d is number and prev is number %}
+              {{ 'towards' if d < prev - 0.25 else ('away' if d > prev + 0.25 else dir) }}
+            {% else %}{{ dir }}{% endif %}
+  # Tonight's Mealie dinner (recipe name, photo, details) for the Wall Panel card.
+  - triggers:
+      - trigger: homeassistant
+        event: start
+      - trigger: time_pattern
+        minutes: "/30"
+      - trigger: state
+        entity_id: calendar.mealie_dinner
+    actions:
+      - action: mealie.get_mealplan
+        continue_on_error: true
+        data:
+          config_entry_id: 01M5KDHM211Z8NNJRZ8V6RXZ24
+          start_date: "{{ now().date() }}"
+          end_date: "{{ now().date() }}"
+        response_variable: plan
+    sensor:
+      - name: "Tonight's dinner"
+        unique_id: mealie_tonights_dinner
+        icon: mdi:silverware-fork-knife
+        state: >-
+          {% set d = ((plan.mealplan if plan is defined and plan else []) | selectattr('entry_type', 'eq', 'dinner') | list) %}
+          {% if d %}{{ ((d[0].recipe.name if d[0].recipe else d[0].title) or 'Dinner') | replace(' Recipe', '') | truncate(250) }}
+          {% else %}Nothing planned{% endif %}
+        attributes:
+          image: >-
+            {% set d = ((plan.mealplan if plan is defined and plan else []) | selectattr('entry_type', 'eq', 'dinner') | list) %}
+            {{ 'http://192.168.0.56:9925/api/media/recipes/' ~ d[0].recipe.recipe_id ~ '/images/min-original.webp' if d and d[0].recipe else '' }}
+          total_time: >-
+            {% set d = ((plan.mealplan if plan is defined and plan else []) | selectattr('entry_type', 'eq', 'dinner') | list) %}
+            {{ d[0].recipe.total_time if d and d[0].recipe and d[0].recipe.total_time else '' }}
+          description: >-
+            {% set d = ((plan.mealplan if plan is defined and plan else []) | selectattr('entry_type', 'eq', 'dinner') | list) %}
+            {{ (d[0].recipe.description if d and d[0].recipe else '') | truncate(250) }}
+          slug: >-
+            {% set d = ((plan.mealplan if plan is defined and plan else []) | selectattr('entry_type', 'eq', 'dinner') | list) %}
+            {{ d[0].recipe.slug if d and d[0].recipe else '' }}
+  - image:
+      - name: "Tonight's dinner photo"
+        unique_id: mealie_tonights_dinner_photo
+        url: "{{ state_attr('sensor.tonights_dinner', 'image') }}"
 
 rest_command:
   fetch_npr_feed:

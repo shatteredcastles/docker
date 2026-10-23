@@ -1,0 +1,388 @@
+- id: '1792370315354'
+  name: Bright
+  entities:
+    light.wiz_rgbw_tunable_3e43ae:
+      min_color_temp_kelvin: 2200
+      max_color_temp_kelvin: 6500
+      effect_list:
+      - Alarm
+      - Bedtime
+      - Candlelight
+      - Christmas
+      - Cozy
+      - Cool white
+      - Daylight
+      - Diwali
+      - Deep dive
+      - Fall
+      - Fireplace
+      - Forest
+      - Focus
+      - Golden white
+      - Halloween
+      - Jungle
+      - Mojito
+      - Night light
+      - Ocean
+      - Party
+      - Pulse
+      - Pastel colors
+      - Plantgrowth
+      - Romance
+      - Relax
+      - Sunset
+      - Spring
+      - Summer
+      - Steampunk
+      - True colors
+      - TV time
+      - White
+      - Wake-up
+      - Warm white
+      - Rhythm
+      supported_color_modes:
+      - color_temp
+      - rgbw
+      effect:
+      color_mode: color_temp
+      brightness: 204
+      color_temp_kelvin: 2512
+      hs_color:
+      - 28.843
+      - 72.089
+      rgb_color:
+      - 255
+      - 160
+      - 71
+      xy_color:
+      - 0.545
+      - 0.39
+      rgbw_color:
+      friendly_name: Bar Light - North
+      supported_features: 4
+      state: 'on'
+    light.wiz_rgbw_tunable_3afffe:
+      min_color_temp_kelvin: 2200
+      max_color_temp_kelvin: 6500
+      effect_list:
+      - Alarm
+      - Bedtime
+      - Candlelight
+      - Christmas
+      - Cozy
+      - Cool white
+      - Daylight
+      - Diwali
+      - Deep dive
+      - Fall
+      - Fireplace
+      - Forest
+      - Focus
+      - Golden white
+      - Halloween
+      - Jungle
+      - Mojito
+      - Night light
+      - Ocean
+      - Party
+      - Pulse
+      - Pastel colors
+      - Plantgrowth
+      - Romance
+      - Relax
+      - Sunset
+      - Spring
+      - Summer
+      - Steampunk
+      - True colors
+      - TV time
+      - White
+      - Wake-up
+      - Warm white
+      - Rhythm
+      supported_color_modes:
+      - color_temp
+      - rgbw
+      effect:
+      color_mode: color_temp
+      brightness: 204
+      color_temp_kelvin: 2525
+      hs_color:
+      - 28.809
+      - 71.624
+      rgb_color:
+      - 255
+      - 160
+      - 72
+      xy_color:
+      - 0.544
+      - 0.389
+      rgbw_color:
+      friendly_name: Bar Light - South
+      supported_features: 4
+      state: 'on'
+    light.wiz_rgbw_tunable_1b3acc:
+      min_color_temp_kelvin: 2700
+      max_color_temp_kelvin: 5000
+      effect_list:
+      - Alarm
+      - Bedtime
+      - Candlelight
+      - Christmas
+      - Cozy
+      - Cool white
+      - Daylight
+      - Diwali
+      - Deep dive
+      - Fall
+      - Fireplace
+      - Forest
+      - Focus
+      - Golden white
+      - Halloween
+      - Jungle
+      - Mojito
+      - Night light
+      - Ocean
+      - Party
+      - Pulse
+      - Pastel colors
+      - Plantgrowth
+      - Romance
+      - Relax
+      - Sunset
+      - Spring
+      - Summer
+      - Steampunk
+      - True colors
+      - TV time
+      - White
+      - Wake-up
+      - Warm white
+      - Rhythm
+      supported_color_modes:
+      - color_temp
+      - rgbw
+      effect:
+      color_mode: color_temp
+      brightness: 204
+      color_temp_kelvin: 2700
+      hs_color:
+      - 28.395
+      - 65.723
+      rgb_color:
+      - 255
+      - 167
+      - 87
+      xy_color:
+      - 0.525
+      - 0.388
+      rgbw_color:
+      friendly_name: TV Backlight
+      supported_features: 4
+      state: 'on'
+    light.entryway_2:
+      min_color_temp_kelvin: 2202
+      max_color_temp_kelvin: 6535
+      supported_color_modes:
+      - color_temp
+      color_mode: color_temp
+      brightness: 204
+      color_temp_kelvin: 2518
+      hs_color:
+      - 28.827
+      - 71.874
+      rgb_color:
+      - 255
+      - 160
+      - 72
+      xy_color:
+      - 0.544
+      - 0.389
+      is_hue_group: true
+      hue_scenes: []
+      hue_type: room
+      lights:
+      - Entryway
+      entity_id:
+      - light.entryway
+      dynamics: false
+      friendly_name: Entryway
+      supported_features: 40
+      state: 'on'
+    select.entryway_entryway_scene:
+      options: []
+      friendly_name: Entryway Scene
+      state: unknown
+    light.kitchen:
+      min_color_temp_kelvin: 2202
+      max_color_temp_kelvin: 6535
+      supported_color_modes:
+      - color_temp
+      color_mode: color_temp
+      brightness: 204
+      color_temp_kelvin: 2506
+      hs_color:
+      - 28.859
+      - 72.305
+      rgb_color:
+      - 255
+      - 159
+      - 71
+      xy_color:
+      - 0.546
+      - 0.389
+      is_hue_group: true
+      hue_scenes:
+      - Natural light
+      - Read
+      - Nightlight
+      - Concentrate
+      - Rest
+      - Energize
+      - Relax
+      hue_type: room
+      lights:
+      - Kitchen 1
+      - Kitchen 2
+      entity_id:
+      - light.kitchen_1
+      - light.kitchen_2
+      dynamics: false
+      friendly_name: Kitchen
+      supported_features: 40
+      state: 'on'
+    select.kitchen_kitchen_scene:
+      options:
+      - Concentrate
+      - Energize
+      - Natural light
+      - Nightlight
+      - Read
+      - Relax
+      - Rest
+      friendly_name: Kitchen Scene
+      state: unknown
+    light.hall_2:
+      min_color_temp_kelvin: 2202
+      max_color_temp_kelvin: 6535
+      supported_color_modes:
+      - color_temp
+      color_mode: color_temp
+      brightness: 204
+      color_temp_kelvin: 2518
+      hs_color:
+      - 28.827
+      - 71.874
+      rgb_color:
+      - 255
+      - 160
+      - 72
+      xy_color:
+      - 0.544
+      - 0.389
+      is_hue_group: true
+      hue_scenes: []
+      hue_type: room
+      lights:
+      - Hall
+      entity_id:
+      - light.hall
+      dynamics: false
+      friendly_name: Hall
+      supported_features: 40
+      state: 'on'
+    select.hall_hall_scene:
+      options: []
+      friendly_name: Hall Scene
+      state: unknown
+    light.wiz_rgbw_tunable_696a14:
+      min_color_temp_kelvin: 2200
+      max_color_temp_kelvin: 6500
+      effect_list:
+      - Alarm
+      - Bedtime
+      - Candlelight
+      - Christmas
+      - Cozy
+      - Cool white
+      - Daylight
+      - Diwali
+      - Deep dive
+      - Fall
+      - Fireplace
+      - Forest
+      - Focus
+      - Golden white
+      - Halloween
+      - Jungle
+      - Mojito
+      - Night light
+      - Ocean
+      - Party
+      - Pulse
+      - Pastel colors
+      - Plantgrowth
+      - Romance
+      - Relax
+      - Sunset
+      - Spring
+      - Summer
+      - Steampunk
+      - True colors
+      - TV time
+      - White
+      - Wake-up
+      - Warm white
+      - Rhythm
+      supported_color_modes:
+      - color_temp
+      - rgbw
+      effect:
+      color_mode: color_temp
+      brightness: 204
+      color_temp_kelvin: 2512
+      hs_color:
+      - 28.843
+      - 72.089
+      rgb_color:
+      - 255
+      - 160
+      - 71
+      xy_color:
+      - 0.545
+      - 0.39
+      rgbw_color:
+      friendly_name: Living Room Floor Light
+      supported_features: 4
+      state: 'on'
+  metadata: {}
+- id: '1792370400001'
+  name: Relax
+  entities:
+    light.kitchen:
+      state: 'on'
+      brightness: 102
+    light.hall_2:
+      state: 'on'
+      brightness: 102
+    light.living_room_3:
+      state: 'on'
+      brightness: 128
+  icon: mdi:sofa
+- id: '1792370400002'
+  name: Dim
+  entities:
+    light.living_room_3:
+      state: 'on'
+      brightness: 77
+    light.kitchen:
+      state: 'on'
+      brightness: 77
+    light.entryway_2:
+      state: 'on'
+      brightness: 77
+    light.hall_2:
+      state: 'on'
+      brightness: 77
+  icon: mdi:weather-night

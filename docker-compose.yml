@@ -142,6 +142,7 @@ include:
   # MEDIA SERVERS
   - compose/$HOSTNAME/jellyfin.yml
   - compose/$HOSTNAME/immich.yml
+  - compose/$HOSTNAME/immich-kiosk.yml
   - compose/$HOSTNAME/komga.yml
   # DATABASES
   - compose/$HOSTNAME/adminer.yml

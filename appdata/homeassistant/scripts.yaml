@@ -77,6 +77,29 @@ morning_routine:
         Right now it's {{ state_attr('weather.home', 'temperature') }} degrees and {{ states('weather.home') | replace('-', ' ') }}.
         Today's high will be {{ today.temperature }} with a low of {{ today.templow }}.
         Tomorrow, expect a high of {{ tomorrow.temperature }} and {{ tomorrow.condition | replace('-', ' ') }}.
+  - alias: Get tonight's dinner from Mealie
+    action: calendar.get_events
+    continue_on_error: true
+    target:
+      entity_id: calendar.mealie_dinner
+    data:
+      start_date_time: "{{ today_at('00:00') }}"
+      end_date_time: "{{ today_at('23:59') }}"
+    response_variable: dinner_plan
+  - alias: Announce dinner (if planned)
+    if:
+    - condition: template
+      value_template: "{{ (dinner_plan or {}).get('calendar.mealie_dinner', {}).get('events', []) | count > 0 }}"
+    then:
+    - action: tts.speak
+      target:
+        entity_id: tts.piper
+      data:
+        media_player_entity_id: media_player.sonos_living_room
+        options:
+          voice: en_GB-vctk-medium
+        message: >-
+          Tonight's dinner is {{ dinner_plan['calendar.mealie_dinner'].events[0].summary | replace(' Recipe', '') }}.
   - alias: Fetch NPR feed
     action: rest_command.fetch_npr_feed
     response_variable: npr_feed
