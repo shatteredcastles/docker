@@ -95,7 +95,6 @@ include:
   - compose/$HOSTNAME/oauth.yml
   - compose/$HOSTNAME/authelia.yml
   - compose/$HOSTNAME/portainer.yml
-  # - compose/$HOSTNAME/yacht.yml
   # SECURITY
   - compose/$HOSTNAME/crowdsec.yml
   - compose/$HOSTNAME/traefik-bouncer.yml
@@ -106,7 +105,6 @@ include:
   - compose/$HOSTNAME/whoami.yml
   - compose/$HOSTNAME/firefox.yml
   # BACKEND
-  # - compose/$HOSTNAME/fileflows.yml
   # DATABASES
   
   # DOWNLOADERS
@@ -123,7 +121,6 @@ include:
   # COMPLEMENTARY APPS
   - compose/$HOSTNAME/prowlarr.yml
   - compose/$HOSTNAME/ntfy.yml
-  # - compose/$HOSTNAME/bazarr.yml
 
   # MONITORING
   
@@ -132,7 +129,6 @@ include:
   - compose/$HOSTNAME/grafana.yml
   - compose/$HOSTNAME/uptime-kuma.yml
   - compose/$HOSTNAME/dozzle.yml
-  # - compose/$HOSTNAME/scrutiny.yml
   - compose/$HOSTNAME/radarr-exporter.yml
   - compose/$HOSTNAME/sonarr-exporter.yml
   - compose/$HOSTNAME/prowlarr-exporter.yml
@@ -148,7 +144,6 @@ include:
   - compose/$HOSTNAME/adminer.yml
   - compose/$HOSTNAME/vaultwarden.yml
   - compose/$HOSTNAME/mariadb.yml
-  # - compose/$HOSTNAME/prometheus.yml
   - compose/$HOSTNAME/influxdb.yml
   # ADMIN
   - compose/$HOSTNAME/kasm.yml
@@ -158,7 +153,6 @@ include:
   - compose/$HOSTNAME/peanut.yml
   - compose/$HOSTNAME/telegraf.yml
   # OTHER
-  # - compose/$HOSTNAME/baikal.yml
   # MONITORING
   - compose/$HOSTNAME/glances.yml
   - compose/$HOSTNAME/homebridge.yml
