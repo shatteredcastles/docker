@@ -198,6 +198,62 @@ Here are some example alias commands:
 - `dclogs` - See real-time logs for the corresponding stack or service
 - `dcpull` - Pull new images for the corresponding stack or service
 
+## CrowdSec: Unbanning an IP
+
+If I get locked out while away from home (hotel or public wifi), the IP has probably been banned by CrowdSec. Bans are enforced by both the host firewall bouncer and the Traefik bouncer, but both pull from the CrowdSec LAPI, so removing the decision in CrowdSec clears it everywhere.
+
+The CrowdSec web console ([app.crowdsec.net](https://app.crowdsec.net)) shows alerts, but removing decisions requires a paid plan, so unbanning is done with `cscli`.
+
+### Quick unban: `temp-unban`
+
+`scripts/hs/temp-unban.sh` removes any active ban on an IP and adds it to the `temp-allowlist` with an expiry, so it doesn't get re-banned. Add an alias to `.bashrc`:
+
+```bash
+alias temp-unban='/data/docker/scripts/hs/temp-unban.sh'
+```
+
+Usage:
+
+```bash
+temp-unban 1.2.3.4                     # unban + allowlist for 1 week (default)
+temp-unban 1.2.3.4 72h                 # custom duration
+temp-unban 1.2.3.4 72h "Hotel Paris"   # custom comment
+temp-unban                             # show current temp allowlist
+```
+
+Find the current public IP from the blocked device with [whatismyip.com](https://whatismyip.com) or `curl -s ifconfig.me`.
+
+### Manual commands
+
+```bash
+docker exec crowdsec cscli decisions list                    # all active bans
+docker exec crowdsec cscli decisions list --ip <IP>          # is this IP banned?
+docker exec crowdsec cscli alerts list --ip <IP>             # why was it banned?
+docker exec crowdsec cscli alerts inspect <ALERT_ID> -d      # full details of an alert
+docker exec crowdsec cscli decisions delete --ip <IP>        # unban
+
+docker exec crowdsec cscli allowlists inspect temp-allowlist             # view temp allowlist
+docker exec crowdsec cscli allowlists remove temp-allowlist <IP>         # remove early
+```
+
+For IPs that should be trusted permanently (home, work, family), add them to `appdata/crowdsec/config/parsers/s02-enrich/whitelist.yaml` and run `docker restart crowdsec`.
+
+## What Gets Committed
+
+This repo is private, but `.gitignore` still uses an allowlist approach: everything is ignored by default (`*` and `*/`) and files are explicitly re-included with `!` rules. This keeps app data, databases, logs, and secrets out of git automatically.
+
+To start tracking a new file, add a `!` rule for it (and for its parent folder if needed). For example, `scripts/hs/` only tracks `*.example` files plus specific scripts:
+
+```gitignore
+!scripts/hs
+scripts/hs/*
+!scripts/hs/*.example
+!scripts/hs/temp-unban.sh
+```
+
+Use `git check-ignore -v <path>` to see which rule is ignoring a file.
+
+Things that should never be committed: `.env`, `secrets/`, `appdata/homeassistant/secrets.yaml`, and CrowdSec `*_api_credentials.yaml`.
 
 ## Further Reading
 
