@@ -46,8 +46,9 @@ services:
       - "traefik.http.routers.sonarr-rtr.service=sonarr-svc"
       - "traefik.http.routers.sonarr-rtr-bypass.service=sonarr-svc"
       - "traefik.http.services.sonarr-svc.loadbalancer.server.port=8989"
-      # UPDATE IMAGE
-      - "com.centurylinklabs.watchtower.enable=true"
+      # AUTO-UPDATE: weekly update-containers.sh; Diun skips these
+      - "homelab.auto-update=true"
+      - "diun.enable=false"
       # Homepage Setup
       - homepage.group=Media Stack
       - homepage.name=Sonarr

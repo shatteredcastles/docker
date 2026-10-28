@@ -53,5 +53,6 @@ services:
       - "traefik.http.routers.ghost-rtr.service=ghost-svc"
       - "traefik.http.routers.ghost-rtr-bypass.service=ghost-svc"
       - "traefik.http.services.ghost-svc.loadbalancer.server.port=2368" # this has to stay the name of the internal port used by the container, not the mapped port
-      # UPDATE IMAGE - if watchtower should update this image - disable for risky stuff like IP configs
-      - "com.centurylinklabs.watchtower.enable=true"
+      # AUTO-UPDATE: weekly update-containers.sh; Diun skips these
+      - "homelab.auto-update=true"
+      - "diun.enable=false"

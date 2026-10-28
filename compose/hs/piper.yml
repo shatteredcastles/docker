@@ -11,4 +11,5 @@ services:
     environment:
       - TZ=$TZ
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+      - "homelab.auto-update=true"
+      - "diun.enable=false"

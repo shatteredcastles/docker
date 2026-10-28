@@ -34,5 +34,6 @@ services:
 
     labels:
       - "traefik.enable=false"
-      # UPDATE IMAGE - if watchtower should update this image
-      - "com.centurylinklabs.watchtower.enable=true"
+      # AUTO-UPDATE: weekly update-containers.sh; Diun skips these
+      - "homelab.auto-update=true"
+      - "diun.enable=false"

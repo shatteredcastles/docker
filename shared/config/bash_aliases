@@ -16,7 +16,8 @@ alias dcpull='dc pull'                     # dcpull [service...]
 alias dclogs='dc logs -f --tail=100'       # dclogs [service...]
 alias dcps='dc ps --format "table {{.Name}}\t{{.State}}\t{{.Status}}"'
 alias dccheck='dc config -q && echo "compose config OK"'
-alias dcplan='dc up -d --dry-run 2>/dev/null | grep -E "Recreate|Create |Remov" | grep -v "d $"'  # what dcup would change
+alias dcplan='dc up -d --dry-run 2>&1 | grep -E "Recreate|Create |Remov" | grep -v "d $"'  # what dcup would change
+alias dcupdate='"$DOCKER_DIR/scripts/hs/update-containers.sh"'  # run the weekly auto-update now
 
 ########################### DOCKER
 alias dps='docker ps -a --format "table {{.Names}}\t{{.State}}\t{{.Status}}\t{{.Image}}" | (sed -u 1q; sort)'

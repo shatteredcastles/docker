@@ -11,7 +11,6 @@ services:
       - apparmor:unconfined
 
     restart: always
-    # profiles: ["media", "all"]
     user: $PUID:$PGID
     devices:
       - /dev/dri:/dev/dri # for harware transcoding
@@ -35,13 +34,6 @@ services:
       - /dev/shm:/data/transcode # Offload transcoding to RAM if you have enough RAM
     labels:
       - "traefik.enable=true"
-      # # External auth-required
-      # - "traefik.http.routers.jellyfin-rtr.rule=Host(`jellyfin.shatteredcastle.com`)"
-      # - "traefik.http.routers.jellyfin-rtr.entrypoints=websecure"
-      # - "traefik.http.routers.jellyfin-rtr.service=jellyfin-svc"
-      # - "traefik.http.routers.jellyfin-rtr.priority=10"
-      # - "traefik.http.routers.jellyfin-rtr.middlewares=chain-oauth@file"
-      # - "traefik.http.routers.jellyfin-rtr.tls.options=default@file"
 
       # Local bypass
       - "traefik.http.routers.jellyfin-rtr-bypass.rule=Host(`jellyfin.$DOMAINNAME`)" # && (ClientIP(`127.0.0.1/32`) || ClientIP(`192.168.0.0/16`) || ClientIP(`10.0.0.0/8`) || ClientIP(`172.16.0.0/12`) || ClientIP(`192.168.90.0/24`) || ClientIP(`192.168.91.0/24`))"
@@ -52,8 +44,9 @@ services:
       - "traefik.http.routers.jellyfin-rtr-bypass.tls.options=tls-opts@file"
       # HTTP Services
       - "traefik.http.services.jellyfin-svc.loadbalancer.server.port=8096"
-      # UPDATE IMAGE
-      - "com.centurylinklabs.watchtower.enable=true"
+      # AUTO-UPDATE: weekly update-containers.sh; Diun skips these
+      - "homelab.auto-update=true"
+      - "diun.enable=false"
       # Homepage Setup
       - homepage.group=Media
       - homepage.name=Jellyfin

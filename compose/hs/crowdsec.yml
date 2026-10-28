@@ -34,5 +34,6 @@ services:
     command:
       - '--prometheus'
     labels:
-      # UPDATE IMAGE
-      - "com.centurylinklabs.watchtower.enable=true"
+      # AUTO-UPDATE: weekly update-containers.sh; Diun skips these
+      - "homelab.auto-update=true"
+      - "diun.enable=false"

@@ -10,7 +10,8 @@ services:
     environment:
       - TZ=$TZ
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+      - "homelab.auto-update=true"
+      - "diun.enable=false"
       - homepage.group=Smart Home
       - homepage.name=Music Assistant
       - homepage.icon=music-assistant.png

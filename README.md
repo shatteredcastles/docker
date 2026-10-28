@@ -44,8 +44,28 @@ The repo lives at `/home/james/docker` on the host (`/data/docker` inside the VS
 | `dcps` | Status of this host's stack |
 | `dccheck` | Validate the compose config |
 | `dcplan` | Show which containers `dcup` would recreate |
+| `dcupdate [--dry-run]` | Run the auto-update job now |
 
-Watchtower auto-updates containers labelled `com.centurylinklabs.watchtower.enable=true` by recreating them outside Compose, so `dcplan` will list those as "Recreate" even when nothing changed. That's expected; running `dcup` just recreates them on the same image.
+## Updates
+
+- **Auto-updated** – services labelled `homelab.auto-update=true` are pulled and recreated weekly by [scripts/hs/update-containers.sh](scripts/hs/update-containers.sh), which then prunes old images and sends a Pushover summary. It runs from the host's crontab:
+  ```
+  0 4 * * 0  $HOME/docker/scripts/hs/update-containers.sh >> $HOME/docker/logs/update-containers.log 2>&1
+  ```
+- **Notify only** – everything else (databases, anything risky) is watched by [Diun](compose/hs/diun.yml), which sends a Pushover message when a new image is published. Update those by hand: `dcpull <service> && dcup <service>`.
+
+Auto-updated services also carry `diun.enable=false` so you're not notified about updates that will be applied anyway. To move a service between the two groups, add or remove both labels.
+
+## Docker API access
+
+Nothing talks to `/var/run/docker.sock` directly. Two [socket proxies](compose/hs/socket-proxy.yml) filter the API; neither is published on the host:
+
+| Proxy | Network | Access | Used by |
+|---|---|---|---|
+| `socket-proxy` | `socket_proxy` | Read-only (`POST=0`) | Traefik, Homepage, Glances, Dozzle, Telegraf, Diun |
+| `socket-proxy-rw` | `socket_proxy_rw` | Read-write | Portainer, deunhealth |
+
+Write access to Docker is equivalent to root on the host, so only add a service to the read-write proxy if it has to start, stop or create containers.
 
 ## Adding a service
 

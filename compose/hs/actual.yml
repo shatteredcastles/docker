@@ -22,5 +22,6 @@ services:
       - "traefik.http.routers.actual-rtr.tls=true"
       - "traefik.http.routers.actual-rtr.middlewares=chain-oauth@file"
       - "traefik.http.services.actual-svc.loadbalancer.server.port=5006"
-      # UPDATE IMAGE
-      - "com.centurylinklabs.watchtower.enable=true"
+      # AUTO-UPDATE: weekly update-containers.sh; Diun skips these
+      - "homelab.auto-update=true"
+      - "diun.enable=false"

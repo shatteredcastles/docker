@@ -37,8 +37,9 @@ services:
       # HTTP Services
       - "traefik.http.routers.grafana-rtr.service=grafana-svc"
       - "traefik.http.services.grafana-svc.loadbalancer.server.port=3000"
-      # UPDATE IMAGE
-      - "com.centurylinklabs.watchtower.enable=true"
+      # AUTO-UPDATE: weekly update-containers.sh; Diun skips these
+      - "homelab.auto-update=true"
+      - "diun.enable=false"
       # Iframe Bypass Router (NO auth, only if header is present)
       - "traefik.http.routers.grafana-embed-rtr.entrypoints=websecure"
       - "traefik.http.routers.grafana-embed-rtr.rule=Host(`grafana.$DOMAINNAME`) && ClientIP(`$PUBLIC_IP`)" 

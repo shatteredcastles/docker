@@ -1,0 +1,29 @@
+services:
+  # Diun - notifies when a newer image is available. Never updates anything itself.
+  # Watches every container except those labelled diun.enable=false (the ones
+  # scripts/hs/update-containers.sh updates automatically).
+  # https://crazymax.dev/diun/
+  diun:
+    image: crazymax/diun:4
+    container_name: diun
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    networks:
+      - socket_proxy # read-only proxy
+      - default # registry access
+    volumes:
+      - $DOCKERDIR/appdata/diun:/data
+    environment:
+      TZ: $TZ
+      LOG_LEVEL: info
+      DIUN_WATCH_SCHEDULE: "0 9 * * *" # daily at 9am
+      DIUN_WATCH_JITTER: 30s
+      DIUN_WATCH_WORKERS: 10
+      DIUN_PROVIDERS_DOCKER: "true"
+      DIUN_PROVIDERS_DOCKER_ENDPOINT: tcp://socket-proxy:2375
+      DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT: "true"
+      DIUN_NOTIF_PUSHOVER_TOKEN: $PUSHOVER_APP_TOKEN
+      DIUN_NOTIF_PUSHOVER_RECIPIENT: $PUSHOVER_USER_KEY
+    labels:
+      - "diun.enable=true" # watch itself

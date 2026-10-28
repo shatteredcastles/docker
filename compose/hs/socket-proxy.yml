@@ -1,50 +1,62 @@
 services:
-  # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
+  # Docker Socket Proxy - filtered access to the Docker API.
+  # Two instances: read-only for anything that just needs to see containers,
+  # read-write only for the few services that manage them. Write access to
+  # Docker is effectively root on the host, so keep that list short.
+  # Neither is published on the host.
+
+  # READ-ONLY: traefik, homepage, glances, dozzle, telegraf, diun
   socket-proxy:
     container_name: socket-proxy
-    image: tecnativa/docker-socket-proxy:latest # Pinned version updated to latest
+    image: tecnativa/docker-socket-proxy:latest
     security_opt:
       - no-new-privileges:true
     restart: always
     networks:
       socket_proxy:
-        ipv4_address: 192.168.91.254 # You can specify a static IP
-    # privileged: true # true for VM. False for unprivileged LXC container.
-    ports:
-    #  - "$ZEROTIER_IP_CLOUDSERVER:2375:2375" # Port 2375 should only ever get exposed to the internal network. When possible use this line.
-    # I use the next line instead, as I want portainer to manage multiple docker endpoints within my home network.
-      - "2375:2375" # Do not expose this to the internet with port forwarding
+        ipv4_address: 192.168.91.254
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
     environment:
       - LOG_LEVEL=info # debug,info,notice,warning,err,crit,alert,emerg
-      ## Variables match the URL prefix (i.e. AUTH blocks access to /auth/* parts of the API, etc.).
-      # 0 to revoke access.
-      # 1 to grant access.
-      ## Granted by Default
+      # 1 = allow GET on that API prefix. POST=0 blocks every write.
+      - POST=0
       - EVENTS=1
       - PING=1
       - VERSION=1
-      ## Revoked by Default
-      # Security critical
-      - AUTH=0
-      - SECRETS=0
-      - POST=1 # Watchtower
-      # Not always needed
-      - BUILD=0
-      - COMMIT=0
-      - CONFIGS=0
-      - CONTAINERS=1 # Traefik, portainer, etc.
-      - DISTRIBUTION=0
-      - EXEC=0
-      - IMAGES=1 # Portainer
-      - INFO=1 # Portainer
-      - NETWORKS=1 # Portainer
-      - NODES=0
-      - PLUGINS=0
+      - CONTAINERS=1
+      - IMAGES=1
+      - INFO=1
+      - NETWORKS=1
+    labels:
+      - "homelab.auto-update=true"
+      - "diun.enable=false"
+
+  # READ-WRITE: portainer, deunhealth
+  socket-proxy-rw:
+    container_name: socket-proxy-rw
+    image: tecnativa/docker-socket-proxy:latest
+    security_opt:
+      - no-new-privileges:true
+    restart: always
+    networks:
+      socket_proxy_rw:
+        ipv4_address: 192.168.92.254
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    environment:
+      - LOG_LEVEL=info
+      - POST=1
+      - EVENTS=1
+      - PING=1
+      - VERSION=1
+      - CONTAINERS=1
+      - IMAGES=1
+      - INFO=1
+      - NETWORKS=1
+      - VOLUMES=1
       - SERVICES=1 # Portainer
-      - SESSION=0
-      - SWARM=0
-      - SYSTEM=0
       - TASKS=1 # Portainer
-      - VOLUMES=1 # Portainer
+    labels:
+      - "homelab.auto-update=true"
+      - "diun.enable=false"

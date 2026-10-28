@@ -50,8 +50,9 @@ services:
       - "traefik.http.routers.glances-rtr.service=glances-svc"
       - "traefik.http.routers.glances-rtr-bypass.service=glances-svc"
       - "traefik.http.services.glances-svc.loadbalancer.server.port=61208" # this has to stay the name of the internal port used by the container, not the mapped port
-      # UPDATE IMAGE - if watchtower should update this image - disable for risky stuff like IP configs
-      - "com.centurylinklabs.watchtower.enable=true"
+      # AUTO-UPDATE: weekly update-containers.sh; Diun skips these
+      - "homelab.auto-update=true"
+      - "diun.enable=false"
       # Homepage Setup - if this should be included on Homepage
       - homepage.group=Monitoring # set group name to whatever works
       - homepage.name=Glances

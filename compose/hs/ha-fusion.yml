@@ -22,5 +22,6 @@ services:
       - "traefik.http.routers.ha-rtr.service=ha-svc"
       - "traefik.http.routers.ha-rtr-bypass.service=ha-svc"
       - "traefik.http.services.ha-svc.loadbalancer.server.port=5050" # this has to stay the name of the internal port used by the container, not the mapped port
-      # UPDATE IMAGE - if watchtower should update this image - disable for risky stuff like IP configs
-      - "com.centurylinklabs.watchtower.enable=true"
+      # AUTO-UPDATE: weekly update-containers.sh; Diun skips these
+      - "homelab.auto-update=true"
+      - "diun.enable=false"

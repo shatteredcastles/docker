@@ -25,7 +25,8 @@ services:
       - "traefik.http.routers.immich.rule=Host(`photos.${DOMAINNAME}`)"
       - "traefik.http.routers.immich.service=immich"
       - "traefik.http.services.immich.loadbalancer.server.port=2283"
-      - "com.centurylinklabs.watchtower.enable=true"
+      - "homelab.auto-update=true"
+      - "diun.enable=false"
       # Homepage Setup
       - homepage.group=Media
       - homepage.name=Immich

@@ -26,8 +26,9 @@ services:
       - "traefik.http.routers.adguard-rtr.service=adguard-svc"
       - "traefik.http.services.adguard-svc.loadbalancer.server.port=80" # Default internal port after setup
       - "traefik.http.routers.adguard-rtr.middlewares=chain-oauth@file"
-      # UPDATE IMAGE
-      - "com.centurylinklabs.watchtower.enable=true"
+      # AUTO-UPDATE: weekly update-containers.sh; Diun skips these
+      - "homelab.auto-update=true"
+      - "diun.enable=false"
       # Homepage
       - "homepage.group=Monitoring"
       - "homepage.name=AdGuard Home"

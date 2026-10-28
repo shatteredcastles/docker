@@ -40,8 +40,10 @@ services:
       # HTTP Services
       - "traefik.http.routers.cname-rtr.service=cname-svc"
       - "traefik.http.services.cname-svc.loadbalancer.server.port=XXXX" # the container's internal port, not a mapped one
-      # UPDATE IMAGE - if watchtower should update this image - disable for risky stuff like databases
-      - "com.centurylinklabs.watchtower.enable=true"
+      # AUTO-UPDATE: weekly update-containers.sh pulls and recreates it. Leave both lines
+      # out for databases and other risky services; Diun will notify you instead.
+      - "homelab.auto-update=true"
+      - "diun.enable=false"
       # Homepage
       - homepage.group=GROUP
       - homepage.name=cname

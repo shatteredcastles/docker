@@ -28,8 +28,9 @@ services:
       # HTTP Services
       - "traefik.http.routers.victoriametrics-rtr.service=victoriametrics-svc"
       - "traefik.http.services.victoriametrics-svc.loadbalancer.server.port=8428"
-      # UPDATE IMAGE
-      - "com.centurylinklabs.watchtower.enable=true"
+      # AUTO-UPDATE: weekly update-containers.sh; Diun skips these
+      - "homelab.auto-update=true"
+      - "diun.enable=false"
     command:
       # Instruct VM to store its data under /storage, not /victoria-metrics-data
       - '-storageDataPath=/storage'

@@ -55,4 +55,5 @@ services:
       - "traefik.http.routers.paperless.rule=Host(`paperless.${DOMAINNAME}`)"
       - "traefik.http.routers.paperless.service=paperless"
       - "traefik.http.services.paperless.loadbalancer.server.port=8000"
-      - "com.centurylinklabs.watchtower.enable=true"
+      - "homelab.auto-update=true"
+      - "diun.enable=false"

@@ -26,7 +26,8 @@ services:
       - TZ=$TZ
     labels:
       ## Update Image
-      - "com.centurylinklabs.watchtower.enable=true"
+      - "homelab.auto-update=true"
+      - "diun.enable=false"
       ## Traefik
       - "traefik.enable=false"
       # # HTTP Routers

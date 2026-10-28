@@ -23,8 +23,9 @@ services:
       ## HTTP Services
       - "traefik.http.routers.seerr-rtr.service=seerr-svc"
       - "traefik.http.services.seerr-svc.loadbalancer.server.port=5055"
-      # UPDATE IMAGE
-      - "com.centurylinklabs.watchtower.enable=true"
+      # AUTO-UPDATE: weekly update-containers.sh; Diun skips these
+      - "homelab.auto-update=true"
+      - "diun.enable=false"
       # Homepage Setup
       - homepage.group=Media Stack
       - homepage.name=Seerr

@@ -50,8 +50,9 @@ services:
       - "traefik.http.routers.vaultwarden-rtr.service=vaultwarden-svc"
       - "traefik.http.routers.vaultwarden-rtr-bypass.service=vaultwarden-svc"
       - "traefik.http.services.vaultwarden-svc.loadbalancer.server.port=80" # this has to stay the name of the internal port used by the container, not the mapped port
-      # UPDATE IMAGE - if watchtower should update this image - disable for risky stuff like IP configs
-      - "com.centurylinklabs.watchtower.enable=true"
+      # AUTO-UPDATE: weekly update-containers.sh; Diun skips these
+      - "homelab.auto-update=true"
+      - "diun.enable=false"
       # # Homepage Setup - if this should be included on Homepage
       # - homepage.group=GROUP # set group name to whatever works
       # - homepage.name=vaultwarden

@@ -7,12 +7,13 @@ services:
       - no-new-privileges:true
     restart: unless-stopped
     networks:
-      - socket_proxy
+      - socket_proxy_rw
     environment:
       LOG_LEVEL: info
       HEALTH_SERVER_ADDRESS: 127.0.0.1:9999
       TZ: $TZ
-      DOCKER_HOST: tcp://socket-proxy:2375
+      DOCKER_HOST: tcp://socket-proxy-rw:2375
     labels:
-      # UPDATE IMAGE
-      - "com.centurylinklabs.watchtower.enable=true"
+      # AUTO-UPDATE: weekly update-containers.sh; Diun skips these
+      - "homelab.auto-update=true"
+      - "diun.enable=false"

@@ -31,8 +31,9 @@ services:
       - "traefik.http.services.nextcloud-svc.loadbalancer.server.port=443"
       - "traefik.http.services.nextcloud-svc.loadbalancer.server.scheme=https"
       - "traefik.http.services.nextcloud-svc.loadbalancer.serverstransport=nextcloud-transport@file"
-      # UPDATE IMAGE
-      - "com.centurylinklabs.watchtower.enable=true"
+      # AUTO-UPDATE: weekly update-containers.sh; Diun skips these
+      - "homelab.auto-update=true"
+      - "diun.enable=false"
       # Homepage Setup
       - homepage.group=Files
       - homepage.name=Nextcloud

@@ -50,8 +50,9 @@ services:
       # HTTP Services
       - "traefik.http.routers.frigate-rtr.service=frigate-svc"
       - "traefik.http.services.frigate-svc.loadbalancer.server.port=5000"
-      # UPDATE IMAGE
-      - "com.centurylinklabs.watchtower.enable=true"
+      # AUTO-UPDATE: weekly update-containers.sh; Diun skips these
+      - "homelab.auto-update=true"
+      - "diun.enable=false"
       # Homepage Setup
       - homepage.group=Smart Home
       - homepage.name=Frigate

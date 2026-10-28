@@ -26,5 +26,6 @@ services:
       # HTTP Services
       - "traefik.http.routers.influx-rtr.service=influx-svc"
       - "traefik.http.services.influx-svc.loadbalancer.server.port=8086"
-      # UPDATE IMAGE
-      - "com.centurylinklabs.watchtower.enable=true"
+      # AUTO-UPDATE: weekly update-containers.sh; Diun skips these
+      - "homelab.auto-update=true"
+      - "diun.enable=false"

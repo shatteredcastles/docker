@@ -20,8 +20,9 @@ services:
       - "traefik.http.routers.ghostfolio-rtr.tls=true"
       - "traefik.http.routers.ghostfolio-rtr.middlewares=chain-oauth@file"
       - "traefik.http.services.ghostfolio-svc.loadbalancer.server.port=3333"
-      # UPDATE IMAGE
-      - "com.centurylinklabs.watchtower.enable=true"
+      # AUTO-UPDATE: weekly update-containers.sh; Diun skips these
+      - "homelab.auto-update=true"
+      - "diun.enable=false"
 
       # Homepage
       - homepage.group=Finance

@@ -22,7 +22,8 @@ services:
     depends_on:
       - rustdesk-hbbr
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+      - "homelab.auto-update=true"
+      - "diun.enable=false"
 
   rustdesk-hbbr:
     container_name: rustdesk-hbbr
@@ -41,4 +42,5 @@ services:
     environment:
       - TZ=$TZ
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+      - "homelab.auto-update=true"
+      - "diun.enable=false"

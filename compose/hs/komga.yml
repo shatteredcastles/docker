@@ -42,8 +42,9 @@ services:
       - "traefik.http.routers.komga-rtr.service=komga-svc"
       - "traefik.http.routers.komga-rtr-bypass.service=komga-svc"
       - "traefik.http.services.komga-svc.loadbalancer.server.port=25600"
-      # UPDATE IMAGE
-      - "com.centurylinklabs.watchtower.enable=true"
+      # AUTO-UPDATE: weekly update-containers.sh; Diun skips these
+      - "homelab.auto-update=true"
+      - "diun.enable=false"
       # Homepage Setup (uncomment and customize as needed)
       - homepage.group=Media
       - homepage.name=Komga

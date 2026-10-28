@@ -8,9 +8,9 @@ services:
     restart: unless-stopped
     networks:
       - t3_proxy
-      - socket_proxy
+      - socket_proxy_rw
     # command: -H unix:///var/run/docker.sock # # Use Docker Socket Proxy instead for improved security
-    command: -H tcp://socket-proxy:2375
+    command: -H tcp://socket-proxy-rw:2375
     # ports:
     #   - $portainer_port:9000
     volumes:
@@ -18,7 +18,7 @@ services:
       - $DOCKERDIR/appdata/portainer/data:/data # Change to local directory if you want to save/transfer config locally
     environment:
       - TZ=$TZ
-      - DOCKER_HOST=tcp://socket-proxy:2375
+      - DOCKER_HOST=tcp://socket-proxy-rw:2375
       - DOCKER_API_VERSION=1.45
     labels:
       #- "traefik.enable=true"
@@ -41,8 +41,9 @@ services:
       # HTTP Services
       - "traefik.http.routers.portainer-rtr.service=portainer-svc"
       - "traefik.http.services.portainer-svc.loadbalancer.server.port=9000"
-      # UPDATE IMAGE
-      - "com.centurylinklabs.watchtower.enable=true"
+      # AUTO-UPDATE: weekly update-containers.sh; Diun skips these
+      - "homelab.auto-update=true"
+      - "diun.enable=false"
       # Homepage Setup
       - homepage.group=Home Server
       - homepage.name=Portainer

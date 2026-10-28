@@ -13,7 +13,6 @@ services:
       - socket_proxy
     volumes:
       - $DOCKERDIR/appdata/telegraf/config:/etc/telegraf
-      - /var/run/docker.sock:/var/run/docker.sock:ro
       - /srv/telegraf-scripts:/scripts:ro
       - /sys/class/drm:/sys/class/drm:ro
       - /dev/dri:/dev/dri
