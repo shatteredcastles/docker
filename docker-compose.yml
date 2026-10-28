@@ -14,56 +14,14 @@ networks:
     ipam:
       config:
         - subnet: 192.168.90.0/24
-  pangolin_proxy:
-    name: pangolin_proxy
-    driver: bridge
-########################### EXTENSION FIELDS
-# Helps eliminate repetition of sections
-# More Info on how to use this: https://github.com/htpcBeginner/docker-traefik/pull/228
- 
-# Common environment values
-x-environment: &default-tz-puid-pgid
-  TZ: $TZ
-  PUID: $PUID
-  PGID: $PGID
- 
-# Keys common to some of the core services that we always to automatically restart on failure
-x-common-keys-core: &common-keys-core
-  networks:
-    - t3_proxy
-  security_opt:
-    - no-new-privileges:true
-  restart: always
- 
-# Keys common to some of the dependent services/apps
-x-common-keys-apps: &common-keys-apps
-  networks:
-    - t3_proxy
-  security_opt:
-    - no-new-privileges:true
-  restart: unless-stopped
- 
-# Keys common to some of the services in media-services.txt
-x-common-keys-media: &common-keys-media
-  networks:
-    - t3_proxy
-  security_opt:
-    - no-new-privileges:true
-  restart: "no"
 ########################### SECRETS
 secrets:
   basic_auth_credentials:
     file: $DOCKERDIR/secrets/basic_auth_credentials #defined
   cf_dns_api_token:
     file: $DOCKERDIR/secrets/cf_dns_api_token #defined
-  oauth_secrets:
-    file: $DOCKERDIR/secrets/oauth_secrets #defined
   traefik_forward_auth:
     file: $DOCKERDIR/secrets/traefik_forward_auth #defined
-  # plex_claim:
-  #   file: $DOCKERDIR/secrets/plex_claim
-  watchtower_notifications:
-    file: $SECRETSDIR/watchtower_notifications
   authelia_jwt_secret:
     file: $DOCKERDIR/secrets/authelia_jwt_secret
   authelia_session_secret:
@@ -73,14 +31,7 @@ secrets:
   mysql_root_password:
     file: $DOCKERDIR/secrets/mysql_root_password
   ghost_db_password:
-    file: /home/james/docker/secrets/ghost_db_password 
-### this doesn't exist
- # guac_db_name:
- #   file: $DOCKERDIR/secrets/guac_db_name
- # guac_mysql_user:
- #   file: $DOCKERDIR/secrets/guac_mysql_user
- # guac_mysql_password:
- #   file: $DOCKERDIR/secrets/guac_mysql_password
+    file: $DOCKERDIR/secrets/ghost_db_password
 
 include:
   ########################### SERVICES
@@ -90,7 +41,6 @@ include:
   # CORE
   - compose/$HOSTNAME/traefik.yml
   - compose/$HOSTNAME/cloudflaredns.yml
-  # - compose/$HOSTNAME/pangolin.yml
   - compose/$HOSTNAME/socket-proxy.yml
   - compose/$HOSTNAME/oauth.yml
   - compose/$HOSTNAME/authelia.yml
@@ -181,4 +131,3 @@ include:
   - compose/$HOSTNAME/frigate.yml
   - compose/$HOSTNAME/music-assistant.yml
   - compose/$HOSTNAME/piper.yml
-  # - compose/$HOSTNAME/matter-server.yml

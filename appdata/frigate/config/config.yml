@@ -13,11 +13,11 @@ mqtt:
 go2rtc:
   streams:
     reolink_doorbell:
-      - rtsp://admin:ACDvN8sHNBb7Rj@192.168.0.227:554/
+      - rtsp://admin:{FRIGATE_RTSP_PASSWORD}@192.168.0.227:554/
     reolink_back_door_1:
-      - rtsp://admin:ACDvN8sHNBb7Rj@192.168.0.211:554/
+      - rtsp://admin:{FRIGATE_RTSP_PASSWORD}@192.168.0.211:554/
     reolink_back_door_2:
-      - rtsp://admin:ACDvN8sHNBb7Rj@192.168.0.211:554/Preview_01_sub
+      - rtsp://admin:{FRIGATE_RTSP_PASSWORD}@192.168.0.211:554/Preview_01_sub
 cameras:
   reolink_doorbell:
     ffmpeg:
@@ -27,7 +27,7 @@ cameras:
           roles:
             - record
         - path: 
-            rtsp://admin:ACDvN8sHNBb7Rj@192.168.0.227:554/h264Preview_01_sub
+            rtsp://admin:{FRIGATE_RTSP_PASSWORD}@192.168.0.227:554/h264Preview_01_sub
           roles:
             - detect
       output_args:
@@ -88,10 +88,10 @@ cameras:
     enabled: true
     ffmpeg:
       inputs:
-        - path: rtsp://admin:ACDvN8sHNBb7Rj@192.168.0.211:554/Preview_01_main
+        - path: rtsp://admin:{FRIGATE_RTSP_PASSWORD}@192.168.0.211:554/Preview_01_main
           roles:
             - record
-        - path: rtsp://admin:ACDvN8sHNBb7Rj@192.168.0.211:554/Preview_01_sub
+        - path: rtsp://admin:{FRIGATE_RTSP_PASSWORD}@192.168.0.211:554/Preview_01_sub
           roles:
             - detect
     live:
