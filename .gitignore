@@ -39,6 +39,7 @@ scripts/*
 !scripts/hs
 scripts/hs/*
 !scripts/hs/*.example
+!scripts/hs/temp-unban.sh
 !scripts/systemd
 scripts/systemd/*
 !scripts/systemd/*.example
