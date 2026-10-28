@@ -4,7 +4,7 @@ services:
     container_name: ghostfolio
     restart: unless-stopped
     env_file:
-      - $DOCKERDIR/appdata/ghostfolio/ghostfolio.env
+      - ../../appdata/ghostfolio/ghostfolio.env
     depends_on:
       - ghostfolio-db
       - ghostfolio-redis

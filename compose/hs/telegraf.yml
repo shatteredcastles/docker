@@ -19,6 +19,8 @@ services:
       - /dev/dri:/dev/dri
     depends_on:
       - influxdb
+    environment:
+      INFLUX_TOKEN: $TELEGRAF_INFLUX_TOKEN
     healthcheck:
       test: ["CMD", "telegraf", "--test", "--config", "/etc/telegraf/telegraf.conf"]
       interval: 1m

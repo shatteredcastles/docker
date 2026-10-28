@@ -34,7 +34,7 @@ influxdb:
   api_version: 2
   host: 192.168.0.56
   port: 8086
-  token: "Eibfdlzt_1EzqrhE1RlRdhiW99Tgqy02iCLYsoUIrieWSf_-J9YMYTSG9a-bSN6IH5VvAXyY5Jg_wGnty5kasg=="
+  token: !secret influxdb_token
   organization: "ShatteredCastle"
   bucket: "homeassistant"
   ssl: false

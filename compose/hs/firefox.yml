@@ -1,6 +1,5 @@
 services:
   # Firefox - Web Broswer
-  # VNC password not working - check
   firefox:
     image: jlesage/firefox:latest
     container_name: firefox
@@ -11,8 +10,7 @@ services:
     # profiles: ["apps", "all"]
     networks:
       - t3_proxy
-    ports:
-      - "$firefox_port:5800"
+    # No host port: only reachable through Traefik + OAuth (web UI has no auth of its own)
     volumes:
       - $DOCKERDIR/appdata/firefox:/config
       # - $DATADIR/downloads:/data/downloads
@@ -26,7 +24,6 @@ services:
       CLEAN_TMP_DIR: 1
       DISPLAY_WIDTH: 1920
       DISPLAY_HEIGHT: 1080
-      VNC_PASSWD: $FIREFOX_VNC_PASSWD
     labels:
       - "traefik.enable=true"
       # HTTP Routers
