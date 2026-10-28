@@ -1,7 +1,7 @@
 services:
   # InfluxDB - Database for sensor data
   influxdb:
-    image: influxdb:latest
+    image: influxdb:2 # v3 is a different product; pin major to avoid a breaking jump
     container_name: influxdb
     networks:
       - default
