@@ -20,9 +20,9 @@ services:
       - $DOCKERDIR/appdata/homepage:/app/config
       - $USERDIR/Pictures:/app/public/images
       - /:/host:ro
-      - /home/james/synology/media:/mnt/media:ro
-      - /home/james/synology/downloads:/mnt/downloads:ro
-      - /home/james/synology/data:/mnt/data:ro
+      - $MEDIADIR:/mnt/media:ro
+      - $DOWNLOADSDIR:/mnt/downloads:ro
+      - $DATADIR:/mnt/data:ro
 
     environment:
       TZ: $TZ

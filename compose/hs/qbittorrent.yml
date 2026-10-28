@@ -33,7 +33,7 @@ services:
       - homepage.group=Media Stack
       - homepage.name=qBittorrent
       - homepage.icon=qbittorrent.png
-      - homepage.href=http://qbit.shatteredcastle.com/
+      - homepage.href=https://qbit.$DOMAINNAME
       - homepage.weight= 1
       # Homepage Widget Conf
       - homepage.widget.type=qbittorrent

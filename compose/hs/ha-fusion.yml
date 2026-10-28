@@ -8,7 +8,7 @@ services:
       - t3_proxy
     environment:
       TZ: $TZ
-      HASS_URL: https://haos.shatteredcastle.com
+      HASS_URL: https://haos.$DOMAINNAME
     restart: unless-stopped
     labels:
       - "traefik.enable=true"

@@ -46,7 +46,7 @@ services:
       - homepage.group=Media Stack
       - homepage.name=Sabnzbd
       - homepage.icon=sabnzbd.png
-      - homepage.href=http://sabnzbd.shatteredcastle.com/
+      - homepage.href=https://sabnzbd.$DOMAINNAME
       - homepage.weight= 2
       # Homepage Widget Conf
       - homepage.widget.type=sabnzbd

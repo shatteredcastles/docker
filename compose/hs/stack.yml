@@ -1,0 +1,125 @@
+# hs - Home Server (Ubuntu, Proxmox LXC)
+# Everything that runs on this host: networks, secrets and the list of services.
+# Paths in `include` are relative to this folder.
+
+networks:
+  default:
+    driver: bridge
+  socket_proxy:
+    name: socket_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.91.0/24
+  t3_proxy:
+    name: t3_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.90.0/24
+
+secrets:
+  basic_auth_credentials:
+    file: $DOCKERDIR/secrets/basic_auth_credentials
+  cf_dns_api_token:
+    file: $DOCKERDIR/secrets/cf_dns_api_token
+  traefik_forward_auth:
+    file: $DOCKERDIR/secrets/traefik_forward_auth
+  authelia_jwt_secret:
+    file: $DOCKERDIR/secrets/authelia_jwt_secret
+  authelia_session_secret:
+    file: $DOCKERDIR/secrets/authelia_session_secret
+  authelia_storage_encryption_key:
+    file: $DOCKERDIR/secrets/authelia_storage_encryption_key
+  mysql_root_password:
+    file: $DOCKERDIR/secrets/mysql_root_password
+  ghost_db_password:
+    file: $DOCKERDIR/secrets/ghost_db_password
+
+include:
+  # CORE - reverse proxy, auth, docker access
+  - traefik.yml
+  - cloudflaredns.yml
+  - socket-proxy.yml
+  - oauth.yml
+  - authelia.yml
+  - portainer.yml
+
+  # SECURITY
+  - crowdsec.yml
+  - traefik-bouncer.yml
+
+  # NETWORK
+  - gluetun.yml
+  - adguard.yml
+  - rustdesk.yml
+
+  # DASHBOARDS & WEB
+  - homepage.yml
+  - ghost.yml
+  - whoami.yml
+  - firefox.yml
+  - kasm.yml
+
+  # DOWNLOADS & MEDIA MANAGEMENT
+  - qbittorrent.yml
+  - sabnzbd.yml
+  - prowlarr.yml
+  - sonarr.yml
+  - radarr.yml
+  - bindery.yml
+  - seerr.yml
+
+  # MEDIA SERVERS
+  - jellyfin.yml
+  - immich.yml
+  - immich-kiosk.yml
+  - komga.yml
+  - audiobookshelf.yml
+
+  # HOME AUTOMATION
+  - homeassistant.yml
+  - ha-fusion.yml
+  - homebridge.yml
+  - mosquitto.yml
+  - frigate.yml
+  - music-assistant.yml
+  - piper.yml
+
+  # APPS
+  - actual.yml
+  - ghostfolio.yml
+  - mealie.yml
+  - paperless.yml
+  - nextcloud.yml
+  - vaultwarden.yml
+  - ntfy.yml
+  - vscode.yml
+
+  # DATABASES
+  - mariadb.yml
+  - phpmyadmin.yml
+  - adminer.yml
+  - influxdb.yml
+
+  # MONITORING
+  - victoriametrics.yml
+  - vmagent.yml
+  - grafana.yml
+  - telegraf.yml
+  - uptime-kuma.yml
+  - dozzle.yml
+  - glances.yml
+  - peanut.yml
+  - node-exporter.yml
+  - radarr-exporter.yml
+  - sonarr-exporter.yml
+  - prowlarr-exporter.yml
+  - sabnzbd-exporter.yml
+  - qbittorrent-exporter.yml
+  - jellyseerr-exporter.yml
+
+  # MAINTENANCE
+  - docker-gc.yml
+  - deunhealth.yml
+  - watchtower.yml

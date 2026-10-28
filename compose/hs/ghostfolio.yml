@@ -27,7 +27,7 @@ services:
       - homepage.group=Finance
       - homepage.name=Ghostfolio
       - homepage.icon=ghostfolio
-      - homepage.href=https://ghostfolio.shatteredcastle.com
+      - homepage.href=https://ghostfolio.$DOMAINNAME
       - homepage.description=Self-hosted portfolio tracker
 
       # Service widget config

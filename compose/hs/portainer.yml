@@ -48,7 +48,7 @@ services:
       - homepage.group=Home Server
       - homepage.name=Portainer
       - homepage.icon=portainer.png
-      - homepage.href=http://portainer.shatteredcastle.com/
+      - homepage.href=https://portainer.$DOMAINNAME
       # Homepage Widget Setup
       - homepage.widget.type=portainer
       - homepage.widget.url=http://portainer:9000
