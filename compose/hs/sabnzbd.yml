@@ -8,7 +8,6 @@ services:
     security_opt:
       - no-new-privileges:true
     restart: always
-    # profiles: ["apps", "downloads", "all"]
     networks:
       - t3_proxy
     # ports:

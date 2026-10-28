@@ -6,7 +6,6 @@ services:
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
-    # profiles: ["monitoring", "all"]
     # privileged: true # Only for VM
     networks:
       - t3_proxy

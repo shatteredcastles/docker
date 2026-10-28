@@ -2,7 +2,6 @@ services:
   komga:
     container_name: komga
     image: gotson/komga
-    # profiles: ["media", "all"]
 
     networks:
       - t3_proxy

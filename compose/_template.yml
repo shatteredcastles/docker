@@ -1,0 +1,61 @@
+# Template for a new service. Copy to compose/<host>/<name>.yml, replace
+# every "cname", then add <name>.yml to compose/<host>/stack.yml.
+services:
+  # what does the service do?
+  # link.to.container.com
+  cname: # change this and update all
+    container_name: cname
+    image: IMAGE/PATH:latest # pin a major version for databases
+
+    networks:
+      - t3_proxy #: #if assigning static ip, turn network into string element
+        # ipv4_address = 192.168.90.x
+      # - socket_proxy # only if it needs the Docker API
+    # Only publish a port if something outside Docker needs it; Traefik reaches the container without one
+    # ports:
+    #   - $cname_port:XXXX
+
+    security_opt:
+      - no-new-privileges:true
+
+    restart: unless-stopped # always, unless-stopped, no
+
+    volumes:
+      - $DOCKERDIR/appdata/cname:/config
+      # - $DATADIR:/data
+      # - $MEDIADIR:/media
+
+    environment:
+      - TZ=$TZ
+      - PUID=$PUID
+      - PGID=$PGID
+
+    labels:
+      - "traefik.enable=true"
+      # HTTP Routers
+      - "traefik.http.routers.cname-rtr.entrypoints=websecure"
+      - "traefik.http.routers.cname-rtr.rule=Host(`cname.$DOMAINNAME`)"
+      # Middlewares: chain-oauth (Google), chain-authelia, or chain-no-auth for apps with their own login
+      - "traefik.http.routers.cname-rtr.middlewares=chain-oauth@file"
+      # HTTP Services
+      - "traefik.http.routers.cname-rtr.service=cname-svc"
+      - "traefik.http.services.cname-svc.loadbalancer.server.port=XXXX" # the container's internal port, not a mapped one
+      # UPDATE IMAGE - if watchtower should update this image - disable for risky stuff like databases
+      - "com.centurylinklabs.watchtower.enable=true"
+      # Homepage
+      - homepage.group=GROUP
+      - homepage.name=cname
+      - homepage.icon=cname.png
+      - homepage.href=https://cname.$DOMAINNAME
+      - homepage.weight=0
+      # Homepage widget (API keys go in .env)
+      - homepage.widget.type=cname
+      - homepage.widget.url=http://cname:XXXX # internal port again
+      # - homepage.widget.key=$CNAME_API_KEY
+      # Auth bypass for mobile apps (e.g. LunaSea) - send the traefik-auth-bypass-key header
+      # - "traefik.http.routers.cname-rtr-bypass.entrypoints=websecure"
+      # - "traefik.http.routers.cname-rtr-bypass.rule=Host(`cname.$DOMAINNAME`) && Header(`traefik-auth-bypass-key`, `$TRAEFIK_AUTH_BYPASS_KEY`)"
+      # - "traefik.http.routers.cname-rtr-bypass.middlewares=chain-no-auth@file"
+      # - "traefik.http.routers.cname-rtr-bypass.service=cname-svc"
+      # - "traefik.http.routers.cname-rtr-bypass.priority=100"
+      # - "traefik.http.routers.cname-rtr.priority=99"

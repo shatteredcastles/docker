@@ -4,7 +4,6 @@ services:
   audiobookshelf:
     container_name: audiobookshelf
     image: ghcr.io/advplyr/audiobookshelf:latest
-    # profiles: ["media", "arrs", "all"] # FOR FUTURE DEVELOPMENT
 
     networks:
       - t3_proxy

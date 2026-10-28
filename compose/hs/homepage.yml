@@ -4,7 +4,6 @@ services:
   homepage:
     container_name: homepage
     image: ghcr.io/gethomepage/homepage:latest
-    # profiles: ["apps", "all"]
 
     networks:
       - t3_proxy

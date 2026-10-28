@@ -8,7 +8,6 @@ services:
       - no-new-privileges:true
     # privileged: true
     restart: always
-    # profiles: ["apps", "downloads", "all"]
     network_mode: "service:gluetun"
     # ports:
     #   - "8081:8080" # Explosed via gluetun. 8081 because crowdsec is using port 8080

@@ -3,7 +3,6 @@ services:
     container_name: adguardhome
     image: adguard/adguardhome
     restart: unless-stopped
-    # profiles: ["core", "all"]
     networks:
       - t3_proxy
     ports:

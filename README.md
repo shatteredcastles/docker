@@ -1,268 +1,113 @@
-# Docker Compose Examples
+# Homelab Docker
 
-This repository contains Docker Compose snippets for several hosts. You'll find example stacks for `hs`, `ds918`, `mds`, `dns`, and `ws` alongside helper scripts and sample configuration files.
+Docker Compose configuration for my self-hosted services. One host runs today (`hs`); the layout is set up so another host can be added without touching it.
 
-## Getting Started
+## Hosts
 
-Clone the repository and copy any `.example` files to customize settings:
+| Host | What it is | Services |
+|---|---|---|
+| `hs` | Home Server – Ubuntu, Proxmox LXC. Media and data on a Synology NAS mounted under `/home/james/synology` | [compose/hs/stack.yml](compose/hs/stack.yml) |
+
+## Layout
+
+```
+docker-compose.yml        Entry point on every host: includes compose/${HOSTNAME}/stack.yml
+compose/
+  _template.yml           Starting point for a new service
+  hs/
+    stack.yml             hs networks, secrets, and the list of services it runs
+    <service>.yml         One file per service (or group, e.g. immich.yml)
+appdata/                  Container data. Only hand-written config is tracked (see .gitignore)
+  traefik3/rules/hs/      Traefik file-provider rules: auth chains, middlewares, non-Docker routes
+  crowdsec/ homeassistant/ frigate/ homepage/ ...
+scripts/
+  gen-env-example.sh      Regenerates .env.example from .env
+  hs/                     Host scripts (backup-all.sh, temp-unban.sh)
+shared/config/bash_aliases  Shell shortcuts (dc, dcup, dclogs, temp-unban, ...)
+secrets/                  Docker secret files (not tracked)
+.env                      Variables and credentials (not tracked); .env.example lists every key
+```
+
+## Everyday use
+
+The repo lives at `/home/james/docker` on the host (`/data/docker` inside the VS Code container). Add the aliases to `~/.bashrc`:
 
 ```bash
-git clone https://github.com/USERNAME/docker.git
-cd docker
-cp .env.example .env # if present
+[ -f "$HOME/docker/shared/config/bash_aliases" ] && . "$HOME/docker/shared/config/bash_aliases"
 ```
 
-Bring up the home server stack:
+| Command | Does |
+|---|---|
+| `dcup [service]` | Start or apply changes (`docker compose up -d`) |
+| `dcrec service` | Force-recreate a service |
+| `dclogs [service]` | Follow logs |
+| `dcps` | Status of this host's stack |
+| `dccheck` | Validate the compose config |
+| `dcplan` | Show which containers `dcup` would recreate |
 
-```bash
-docker compose -f docker-compose-hs.yml up -d
-```
+Watchtower auto-updates containers labelled `com.centurylinklabs.watchtower.enable=true` by recreating them outside Compose, so `dcplan` will list those as "Recreate" even when nothing changed. That's expected; running `dcup` just recreates them on the same image.
 
-Compose files under `compose/` can be mixed and matched for other hosts.
+## Adding a service
 
-## Repository Layout
+1. Copy [compose/_template.yml](compose/_template.yml) to `compose/hs/<name>.yml` and fill it in.
+2. Add `<name>.yml` to the `include:` list in [compose/hs/stack.yml](compose/hs/stack.yml).
+3. Put any credentials in `.env`, then run `envexample` (`scripts/gen-env-example.sh`) to update `.env.example`.
+4. `dccheck`, then `dcup <name>`.
 
-- `docker-compose-hs.yml` – main stack used on the home server
-- `compose/` – per-host Docker Compose snippets
-- `scripts/` – helper scripts
-- `appdata/` – sample application configs
-- `shared/` – shared assets such as `bash_aliases`
+Conventions:
+- Route through Traefik on the `t3_proxy` network; only publish host ports when something outside Docker needs them.
+- Auth via a middleware chain: `chain-oauth` (Google, used by most apps), `chain-authelia` (available, used by Traefik's dashboard and Ghost), or `chain-no-auth` for apps with their own login.
+- Use `$DOCKERDIR`, `$DATADIR`, `$MEDIADIR`, `$DOWNLOADSDIR` and `$DOMAINNAME` instead of hardcoded paths and domains.
+- Pin databases to a major version (e.g. `postgres:16`, `influxdb:2`).
 
-## Understanding This Repository
+## Adding a host
 
-## My Setup
+1. Clone the repo to `~/docker` on the new machine.
+2. Create `.env` from `.env.example`, set `HOSTNAME=<newhost>` and its paths and credentials.
+3. Create `compose/<newhost>/stack.yml` with that host's networks, secrets and `include:` list. Copy service files from `compose/hs/` as needed.
+4. Traefik rules go in `appdata/traefik3/rules/<newhost>/` (Traefik mounts `rules/$HOSTNAME`).
+5. `dccheck`, then `dcup`.
 
-I have 5 docker hosts. I sync all my Docker stacks using Syncthing and push the files to GitHub so I can share with the community. 
+## Secrets
 
-- **_docker-compose-hs.yml:_** Docker Compose for <u>Home Server</u> on Ubuntu Server Proxmox LXC Container.
-- **_docker-compose-mds.yml:_** Docker Compose for <u>Media/Database Server</u> on Ubuntu Server Proxmox LXC Container.
-- **_docker-compose-dns.yml:_** Docker Compose for <u>AdBlock/ DNS Server</u> on Raspberry Pi 4B.
-- **_docker-compose-ws.yml:_** Docker Compose for <u>Web Server</u> on Digital Ocean VPS, which powers this website.
-- **_docker-compose-ds918.yml:_** Docker Compose for <u>Synology DS918+</u> NAS.
+- **`secrets/`** – files mounted as Docker secrets (`/run/secrets/...`), declared in each host's `stack.yml`. Used where the image supports `*_FILE` or reads secrets directly (Traefik, OAuth, Authelia, MariaDB, Ghost).
+- **`.env`** – everything else: API keys (Homepage widget labels can't read secret files), database passwords, ports and paths. Never commit it.
+- App-specific secrets stay in that app's own ignored file, e.g. `appdata/homeassistant/secrets.yaml`.
 
-Syncing also allows me to have a backup of one system's configuration file in all the other hosts. For this reason, where applicable, I segregate or name files/folders with their hostname (for example: **_hs_** for Home Server).
+## CrowdSec: unbanning an IP
 
-Almost any app/service from the docker-compose files listed above can be copy-pasted to any other compose file in this repo.
-
-## Archives
-Files and folders inside _archives_ are not actively maintained. But they may still provide a good starting point. 
-
-## What apps are included in this stack?
-
-The apps I use are scattered around in several different docker-compose files. Click the links below for specific installation guides.
-
-Some apps are used in more than one host and some on only one. 
-
-**This is not an exhaustive list**
-
-### FRONTENDS
-
-- Traefik - Reverse Proxy
-- Nginx Proxy Manager - Reverse Proxy 
-- Docker Socket Proxy - Secure Proxy for Docker API
-- [OAuth](https://www.smarthomebeginner.com/traefik-forward-auth-google-oauth-2022/) - Google OAuth 2 Forward Authentication
-- [Authelia](https://www.smarthomebeginner.com/docker-authelia-tutorial/) - Private Forward Authentication
-- [Portainer](https://www.smarthomebeginner.com/portainer-docker-compose-guide/) - Container Management
-- Organizr - Dashboard for Apps
-- Heimdall - Dashboard for Apps
-- Homepage - Dashboard for Apps
-- Dashy - Dashboard for Apps
-- Autoindex - Plain text Index to All Files
-
-### SMART HOME
-
-- Home Assistant Core - Home Automation
-- HA-Dockermon - Manage Docker containers in Home Assistant
-- Mosquitto - MQTT Broker
-- [MotionEye](https://www.smarthomebeginner.com/motioneye-docker-guide/) - Video Surveillance
-- [Frigate](https://www.smarthomebeginner.com/frigate-docker-guide/) - Video Surveillance
-- [ZoneMinder](https://www.smarthomebeginner.com/zoneminder-docker-guide/) - Video Surveillance
-- MiFlora - MiFlora MQTT Daemon (MiFlora Plant Sensors)
-
-### DATABASE
-
-- MariaDB - MySQL Database
-- phpMyAdmin - Database management
-- [InfluxDB](https://www.smarthomebeginner.com/influxdb-docker-compose-guide/) - Database for sensor data
-- Postgres - Database
-- [Grafana](https://www.smarthomebeginner.com/grafana-docker-compose-guide/) - Graphical data visualization for InfluxDB data
-- Varken - Monitor Plex, Sonarr, Radarr, and Other Data
-- [Redis](https://www.smarthomebeginner.com/redis-docker-compose-example/) - Key value store
-- Redis Commander - Redis management
-
-### DOWNLOADERS
-
-- jDownloader - Download management
-- TransmissionBT with VPN - Torrent Downloader.
-- SABnzbd - Binary newsgrabber, NZB downloader
-- Nzbget - Binary newsgrabber, NZB downloader
-- [qBittorrent](https://www.smarthomebeginner.com/gluetun-docker-guide/) with Wireguard VPN from [Surfshark](https://bit.ly/shb-surfshark) - Torrent downloader
-
-### INDEXERS
-
-- NZBHydra2 - NZB meta search 
-- Jackett - Torrent proxy
-- Prowlarr - Torrent proxy
-
-### PVRS
-
-- Lidarr - Music Management
-- Radarr - Movie management
-- Sonarr - TV Shows management
-- LazyLibrarian - Books Management
-- Readarr - Books Management
-
-### MEDIA SERVER
-
-- AirSonic Advanced - Music Server
-- NaviDrome - Music Server
-- FunkWhale - Music Server
-- Calibre - Ebook/Audiobook Server
-- Calibre-Web - Ebook/Audiobook Reader
-- [Plex](https://www.smarthomebeginner.com/plex-docker-compose/) - Media Server
-- Emby - Media Server
-- [Jellyfin](https://www.smarthomebeginner.com/jellyfin-docker-compose/) - Media Server
-- Ombi - Media Requests
-- Tautulli - Previously PlexPy. Plex statistics and monitoring
-- Plex-Sync - For Syncing watched status between plex servers
-- PhotoShow - Personal Photo Gallery and viewer
-- TellyTv- IPTV proxy for Plex
-- xTeve- IPTV proxy for Plex
-
-### MEDIA FILE MANAGEMENT
-
-- Bazarr - Subtitle Management
-- Picard - Music Library Tagging and Management
-- Handbrake - Video Conversion, Transcoding, and Compression
-- MKVToolNix - Video Editing, Remuxing (changing media container while keeping original source quality)
-- MakeMKV - Video Editing (Ripping from Disks)
-- FileBot - File renamer
-- Tiny Media Manager - Media Files Management
-
-### UTILITIES
-
-- Firefox - Web Broswerstack
-- Glances - System Information
-- APCUPSD - APC UPS Management
-- [Guacamole](https://www.smarthomebeginner.com/install-guacamole-on-docker/) - Remote desktop, SSH, on Telnet on any HTML5 Browser
-- Guacamole Daemon - Needed for Guacamole
-- [Dozzle](https://www.smarthomebeginner.com/dozzle-docker-compose-guide/) - Docker logs viewer
-- qDirStat - Directory Statistics
-- StatPing - Status Page & Monitoring Server
-- SmokePing - Network Latency Monitoring
-- VS Code Server - Code Editor
-- Logarr - Log Management
-- Monitorr - Webfront to display the status of any webapp or service
-- Cloud Commander - Web File Manager
-- Cloud9 - Cloud IDE
-- SMTP To Telegram - Sends all incoming Email messages to Telegram
-- UniFi Controller - Controller for Ubiquiti UniFi Network Gear
-- Rclone - Mount Cloud/Google Drive
-- MergerFS - Merge local and remote file systems
-- [Gluetun](https://www.smarthomebeginner.com/gluetun-docker-guide/) - VPN client for docker containers and more
-- [DeUnhealth](https://www.smarthomebeginner.com/gluetun-docker-guide/) - Auto restart containers on VPN restart
-- [AdGuard Home](https://www.smarthomebeginner.com/adguard-home-docker-compose-guide/) - DNS Sinkhole / Ad-blocker
-
-### WEB
-
-- Nginx - Web Server
-- php7 - PHP-FPM
-
-### MAINTENANCE
-
-- Watchtower - Automatic Docker Container Updates
-- Docker-GC - Automatic Docker Garbage Collection
-- Traefik Certificate Dumper - Extract Traefik SSL Certs
-- Cloudflare DDNS - Dynamic IP Updater
-- Cloudflare Companion - Automatic CNAME creation for services
-- WhoAmI - For testing.
-
-## Bash Aliases 
-
-I use bash_aliases to simplify starting and stopping containers/stack. Included in the repo is an example of bash_aliases I use (replace USER with your Linux username). 
-
-Download it to a known location (e.g. /home/user/docker/shared/config/). Then add the following code block to `.bashrc` file in the user's home folder.
-
-```
-if [ -f "$HOME/docker/shared/config/bash_aliases" ]; then
-    . $HOME/docker/shared/config/bash_aliases
-fi
-```
-Here are some example alias commands:
-
-- `dcup` - Start Docker Traefik 2 stack
-- `dcdown` - Stop Docker Traefik 2 stack
-- `dcrec` - Start or recreate a specific service or the full stack
-- `dcstop` - Stop a specific service or the full stack
-- `dcrestart` - Restart a specific service or the full stack
-- `dclogs` - See real-time logs for the corresponding stack or service
-- `dcpull` - Pull new images for the corresponding stack or service
-
-## CrowdSec: Unbanning an IP
-
-If I get locked out while away from home (hotel or public wifi), the IP has probably been banned by CrowdSec. Bans are enforced by both the host firewall bouncer and the Traefik bouncer, but both pull from the CrowdSec LAPI, so removing the decision in CrowdSec clears it everywhere.
-
-The CrowdSec web console ([app.crowdsec.net](https://app.crowdsec.net)) shows alerts, but removing decisions requires a paid plan, so unbanning is done with `cscli`.
-
-### Quick unban: `temp-unban`
-
-`scripts/hs/temp-unban.sh` removes any active ban on an IP and adds it to the `temp-allowlist` with an expiry, so it doesn't get re-banned. Add an alias to `.bashrc`:
-
-```bash
-alias temp-unban='/data/docker/scripts/hs/temp-unban.sh'
-```
-
-Usage:
+If I get locked out away from home (hotel or public wifi), the IP has probably been banned by CrowdSec. The host firewall bouncer and the Traefik bouncer both pull decisions from the CrowdSec LAPI, so removing the decision in CrowdSec clears it everywhere. The web console ([app.crowdsec.net](https://app.crowdsec.net)) shows alerts, but removing decisions needs a paid plan, so use `cscli`.
 
 ```bash
 temp-unban 1.2.3.4                     # unban + allowlist for 1 week (default)
-temp-unban 1.2.3.4 72h                 # custom duration
-temp-unban 1.2.3.4 72h "Hotel Paris"   # custom comment
-temp-unban                             # show current temp allowlist
+temp-unban 1.2.3.4 72h "Hotel Paris"   # custom duration and comment
+csallow                                # show the temporary allowlist
 ```
 
-Find the current public IP from the blocked device with [whatismyip.com](https://whatismyip.com) or `curl -s ifconfig.me`.
+Find the blocked device's public IP with [whatismyip.com](https://whatismyip.com) or `curl -s ifconfig.me`.
 
-### Manual commands
+Manual commands:
 
 ```bash
-docker exec crowdsec cscli decisions list                    # all active bans
-docker exec crowdsec cscli decisions list --ip <IP>          # is this IP banned?
-docker exec crowdsec cscli alerts list --ip <IP>             # why was it banned?
-docker exec crowdsec cscli alerts inspect <ALERT_ID> -d      # full details of an alert
-docker exec crowdsec cscli decisions delete --ip <IP>        # unban
-
-docker exec crowdsec cscli allowlists inspect temp-allowlist             # view temp allowlist
-docker exec crowdsec cscli allowlists remove temp-allowlist <IP>         # remove early
+csdecisions                                         # all active bans
+cscli decisions list --ip <IP>                      # is this IP banned?
+cscli alerts list --ip <IP>                         # why was it banned?
+csinspect <ALERT_ID>                                # full details of an alert
+cscli decisions delete --ip <IP>                    # unban
+cscli allowlists remove temp-allowlist <IP>         # end a temp-unban early
 ```
 
-For IPs that should be trusted permanently (home, work, family), add them to `appdata/crowdsec/config/parsers/s02-enrich/whitelist.yaml` and run `docker restart crowdsec`.
+For IPs that should be trusted permanently (home, work, family), add them to [whitelist.yaml](appdata/crowdsec/config/parsers/s02-enrich/whitelist.yaml) and `docker restart crowdsec`.
 
-## What Gets Committed
+## Backups
 
-This repo is private, but `.gitignore` still uses an allowlist approach: everything is ignored by default (`*` and `*/`) and files are explicitly re-included with `!` rules. This keeps app data, databases, logs, and secrets out of git automatically.
+[scripts/hs/backup-all.sh](scripts/hs/backup-all.sh) dumps the Immich and Paperless Postgres databases, then rsyncs the dumps, `appdata/` (minus database folders and caches) and the Immich library to the NAS. Run it as root from cron.
 
-To start tracking a new file, add a `!` rule for it (and for its parent folder if needed). For example, `scripts/hs/` only tracks `*.example` files plus specific scripts:
+## What gets committed
 
-```gitignore
-!scripts/hs
-scripts/hs/*
-!scripts/hs/*.example
-!scripts/hs/temp-unban.sh
-```
+The repo is private. `.gitignore` tracks everything by default and excludes:
+- `.env`, `secrets/`, and secret files inside allowlisted folders (`homeassistant/secrets.yaml`, `authelia/users.yml`, CrowdSec API credentials)
+- `backups/`, `logs/`, `.claude/`
+- `appdata/` except an explicit allowlist of config files, since it otherwise holds databases, caches and media
 
-Use `git check-ignore -v <path>` to see which rule is ignoring a file.
-
-Things that should never be committed: `.env`, `secrets/`, `appdata/homeassistant/secrets.yaml`, and CrowdSec `*_api_credentials.yaml`.
-
-## Further Reading
-
-- [Traefik Docker Security Best Practices](https://www.smarthomebeginner.com/traefik-docker-security-best-practices/)
-- [Crowdsec Docker Compose Guide Part 1](https://www.smarthomebeginner.com/crowdsec-docker-compose-1-fw-bouncer/)
-- [CrowdSec Docker Part 2: Cloudflare Bouncer](https://www.smarthomebeginner.com/crowdsec-cloudflare-bouncer/)
-- [CrowdSec Docker Part 3: Traefik Bouncer](https://www.smarthomebeginner.com/crowdsec-traefik-bouncer/)
-- [CrowdSec Multiserver Docker](https://www.smarthomebeginner.com/crowdsec-multiserver-docker/)
-- [How to Install Docker and Docker Compose](https://www.smarthomebeginner.com/install-docker-on-ubuntu-22-04/)
-- [Cloudflare Settings for Traefik Docker](https://www.smarthomebeginner.com/cloudflare-settings-for-traefik-docker/)
-- [Ultimate Docker to Podman Migration Guide](https://www.smarthomebeginner.com/docker-to-podman-migration-guide/)
-- [Nextcloud Docker with Traefik Reverse Proxy](https://www.smarthomebeginner.com/traefik-docker-nextcloud/)
+To track another `appdata` config file, add a `!` rule for it (and its parent folders) in the APPDATA section. `git check-ignore -v <path>` shows which rule matches a file.

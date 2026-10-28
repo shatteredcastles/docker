@@ -6,7 +6,6 @@ services:
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
-    #profiles: ["core", "all"]
     networks:
       - t3_proxy
     environment:

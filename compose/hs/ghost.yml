@@ -4,7 +4,6 @@ services:
   ghost: # change this and update all
     container_name: ghost
     image: ghost:5-alpine
-    # profiles: ["media", "arrs", "all"] # FOR FUTURE DEVELOPMENT
 
     networks:
       - t3_proxy #: #if assigning static ip, turn network into string element

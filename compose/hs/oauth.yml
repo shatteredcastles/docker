@@ -8,7 +8,6 @@ services:
     security_opt:
       - no-new-privileges:true
     restart: always
-    # profiles: ["core", "all"]
     networks:
       - t3_proxy
     # Allow apps to bypass OAuth. Radarr example below will bypass OAuth if API key is present in the request (eg. from NZB360 mobile app).
