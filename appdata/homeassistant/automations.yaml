@@ -344,3 +344,27 @@
     data:
       title: Dinner tonight
       message: "{{ state_attr('calendar.mealie_dinner', 'message') | replace(' Recipe', '') }}. Anything to defrost or prep?"
+- id: '1793160000001'
+  alias: 'Reminder: add docker update cron job'
+  description: One-shot reminder from the docker repo cleanup; turns itself off after firing.
+  triggers:
+  - trigger: state
+    entity_id: person.james_2
+    to: home
+    for:
+      minutes: 5
+  conditions: []
+  actions:
+  - action: notify.pushover
+    data:
+      title: Add the docker update cron job
+      message: "On hs, run `crontab -e` and add:\n0 4 * * 0  $HOME/docker/scripts/hs/update-containers.sh >> $HOME/docker/logs/update-containers.log 2>&1"
+  - action: persistent_notification.create
+    data:
+      notification_id: docker_update_cron
+      title: 'TODO: docker update cron job'
+      message: "On hs, run `crontab -e` and add:\n\n`0 4 * * 0  $HOME/docker/scripts/hs/update-containers.sh >> $HOME/docker/logs/update-containers.log 2>&1`\n\nDismiss this once it's done."
+  - action: automation.turn_off
+    target:
+      entity_id: '{{ this.entity_id }}'
+  mode: single
