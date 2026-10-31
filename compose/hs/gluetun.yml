@@ -40,6 +40,12 @@ services:
       # HTTP Services
       - "traefik.http.routers.gluetun-qbittorrent-rtr.service=gluetun-svc" # qBittorrent
       - "traefik.http.services.gluetun-svc.loadbalancer.server.port=8080" # qBittorrent
+      # slskd (Soulseek)
+      - "traefik.http.routers.gluetun-slskd-rtr.entrypoints=websecure"
+      - "traefik.http.routers.gluetun-slskd-rtr.rule=Host(`slskd.$DOMAINNAME`)"
+      - "traefik.http.routers.gluetun-slskd-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.gluetun-slskd-rtr.service=gluetun-slskd-svc"
+      - "traefik.http.services.gluetun-slskd-svc.loadbalancer.server.port=5030"
       # Homepage Setup
       - homepage.group=Home Server
       - homepage.name=GlueTun

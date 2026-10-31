@@ -1,0 +1,59 @@
+services:
+  # DroppedNeedle - Music requests, discovery, library management and web player (no Lidarr needed)
+  # https://github.com/DroppedNeedle/DroppedNeedle
+  droppedneedle:
+    container_name: droppedneedle
+    image: droppedneedle/droppedneedle:latest
+
+    networks:
+      - t3_proxy
+    # ports:
+    #   - "8688:8688"
+
+    security_opt:
+      - no-new-privileges:true
+
+    restart: unless-stopped
+
+    volumes:
+      - $DOCKERDIR/appdata/droppedneedle/config:/app/config # SQLite - keep on local disk, not NFS
+      - $DOCKERDIR/appdata/droppedneedle/cache:/app/cache
+      - $DOCKERDIR/appdata/droppedneedle/plugins:/app/plugins
+      - $MEDIADIR/Music:/music # default library path (Settings > Library)
+      # Same path SABnzbd reports (/downloads/Completed), so no path mapping is needed.
+      # Different NFS share from Music, so imports copy-then-delete instead of moving.
+      - $DOWNLOADSDIR:/downloads
+
+    environment:
+      - TZ=$TZ
+      - PUID=$PUID
+      - PGID=$PGID
+      - UMASK=002
+      - PORT=8688
+      - TRUSTED_PROXY_IPS=192.168.90.254 # traefik
+      - SLSKD_DOWNLOADS_PATH=/downloads/slskd/complete # slskd's completed dir, as seen here
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8688/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10m # first boot after an upgrade migrates the database
+
+    labels:
+      - "traefik.enable=true"
+      # HTTP Routers
+      - "traefik.http.routers.droppedneedle-rtr.entrypoints=websecure"
+      - "traefik.http.routers.droppedneedle-rtr.rule=Host(`droppedneedle.$DOMAINNAME`)"
+      # Middlewares: own login; OAuth would break its OpenSubsonic/Jellyfin APIs for mobile apps
+      - "traefik.http.routers.droppedneedle-rtr.middlewares=chain-no-auth@file"
+      # HTTP Services
+      - "traefik.http.routers.droppedneedle-rtr.service=droppedneedle-svc"
+      - "traefik.http.services.droppedneedle-svc.loadbalancer.server.port=8688"
+      # NOTIFY ONLY: young project with database migrations; Diun notifies, update by hand
+      # Homepage
+      - homepage.group=Media Stack
+      - homepage.name=DroppedNeedle
+      - homepage.icon=mdi-record-player
+      - homepage.href=https://droppedneedle.$DOMAINNAME
+      - homepage.weight=4

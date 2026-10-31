@@ -1,0 +1,56 @@
+services:
+  # slskd - Soulseek client (P2P music sharing) with web UI, used by DroppedNeedle
+  # https://github.com/slskd/slskd
+  # Runs through gluetun like qBittorrent; Traefik labels live on gluetun.
+  # DroppedNeedle reaches it at http://gluetun:5030 with $SLSKD_API_KEY.
+  slskd:
+    container_name: slskd
+    image: slskd/slskd:0.25.1 # version DroppedNeedle verifies against
+    user: $PUID:$PGID
+    network_mode: "service:gluetun"
+
+    security_opt:
+      - no-new-privileges:true
+
+    restart: unless-stopped
+
+    volumes:
+      - $DOCKERDIR/appdata/slskd:/app
+      # Same paths DroppedNeedle sees through its $DOWNLOADSDIR:/downloads mount
+      - $DOWNLOADSDIR/slskd:/downloads/slskd
+      # Shared with the Soulseek network. Required: users who share nothing get banned.
+      - $MEDIADIR/Music:/music:ro
+
+    environment:
+      TZ: $TZ
+      SLSKD_REMOTE_CONFIGURATION: "false"
+      SLSKD_NO_HTTPS: "true" # Traefik terminates TLS
+      SLSKD_HTTP_PORT: 5030
+      SLSKD_USERNAME: admin
+      SLSKD_PASSWORD: $SLSKD_WEB_PASSWORD
+      SLSKD_API_KEY: $SLSKD_API_KEY
+      SLSKD_SLSK_USERNAME: $SLSKD_SLSK_USERNAME # account is registered on first login
+      SLSKD_SLSK_PASSWORD: $SLSKD_SLSK_PASSWORD
+      SLSKD_SLSK_LISTEN_PORT: 50300 # not forwarded through the VPN yet, so only outbound connections work
+      SLSKD_DOWNLOADS_DIR: /downloads/slskd/complete
+      SLSKD_INCOMPLETE_DIR: /downloads/slskd/incomplete
+      SLSKD_SHARED_DIR: /music
+      SLSKD_SHARE_CACHE_RETENTION: 360 # rescan shares every 6h so new music gets shared (default: only on startup)
+
+    # The image's own check only tests the web UI. slskd stops retrying the Soulseek
+    # server after a VPN outage, so fail when it isn't logged in and let deunhealth restart it.
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - --header=\"X-API-Key: $$SLSKD_API_KEY\" http://localhost:5030/api/v0/server | grep -q '\"isLoggedIn\":true' || exit 1"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 2m
+
+    labels: # Traefik labels added via gluetun
+      - "deunhealth.restart.on.unhealthy=true"
+      # NOTIFY ONLY: pinned to DroppedNeedle's verified version; Diun notifies, update by hand
+      - homepage.group=Media Stack
+      - homepage.name=Soulseek
+      - homepage.icon=slskd.png
+      - homepage.href=https://slskd.$DOMAINNAME
+      - homepage.weight=6

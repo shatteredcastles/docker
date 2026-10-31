@@ -1,0 +1,58 @@
+services:
+  # Navidrome - Music server and streamer (Subsonic API, works with Symfonium, Feishin, Amperfy, ...)
+  # https://www.navidrome.org/docs/usage/configuration-options/
+  navidrome:
+    container_name: navidrome
+    image: deluan/navidrome:latest
+    user: $PUID:$PGID
+
+    networks:
+      - t3_proxy
+    # Music Assistant runs on the host network and streams from here over the LAN
+    ports:
+      - $navidrome_port:4533
+
+    security_opt:
+      - no-new-privileges:true
+
+    restart: unless-stopped
+
+    volumes:
+      - $DOCKERDIR/appdata/navidrome:/data
+      - $MEDIADIR/Music:/music:ro # Lidarr's root folder
+
+    environment:
+      TZ: $TZ
+      ND_SCANSCHEDULE: 1h
+      ND_LOGLEVEL: info
+      ND_BASEURL: ""
+      ND_ENABLESHARING: "true"
+      ND_LISTENBRAINZ_ENABLED: "true" # each user links their token under Personal settings
+      # ND_LASTFM_APIKEY: $NAVIDROME_LASTFM_APIKEY # Last.fm scrobbling + artist info
+      # ND_LASTFM_SECRET: $NAVIDROME_LASTFM_SECRET
+
+    labels:
+      - "traefik.enable=true"
+      # HTTP Routers
+      - "traefik.http.routers.navidrome-rtr.entrypoints=websecure"
+      - "traefik.http.routers.navidrome-rtr.rule=Host(`navidrome.$DOMAINNAME`)"
+      # Middlewares: own login; OAuth would break Subsonic mobile/desktop clients
+      - "traefik.http.routers.navidrome-rtr.middlewares=chain-no-auth@file"
+      # HTTP Services
+      - "traefik.http.routers.navidrome-rtr.service=navidrome-svc"
+      - "traefik.http.services.navidrome-svc.loadbalancer.server.port=4533"
+      # AUTO-UPDATE: weekly update-containers.sh; Diun skips these
+      - "homelab.auto-update=true"
+      - "diun.enable=false"
+      # Homepage Setup
+      - homepage.group=Media
+      - homepage.name=Navidrome
+      - homepage.icon=navidrome.png
+      - homepage.href=https://navidrome.$DOMAINNAME
+      - homepage.weight=5
+      # Homepage widget needs a Subsonic token + salt: md5(password + salt)
+      # - homepage.widget.type=navidrome
+      # - homepage.widget.url=http://navidrome:4533
+      # - homepage.widget.user=$NAVIDROME_USER
+      # - homepage.widget.token=$NAVIDROME_TOKEN
+      # - homepage.widget.salt=$NAVIDROME_SALT
