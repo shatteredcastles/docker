@@ -53,7 +53,7 @@ MS-01 network ports (MAC → chip):
   D=~/synology/data/backups/hs/host-config
   mkdir -p $D && chmod 700 $D
   cp ~/docker/.env $D/
-  cp -r ~/docker/secrets $D/
+  sudo cp -r ~/docker/secrets $D/     # sudo: some secret files are root-only
   sudo cp /etc/fstab /etc/crowdsec/bouncers/crowdsec-firewall-bouncer.yaml $D/
   sudo cp -r /srv/telegraf-scripts $D/
   sudo cp ~/docker/appdata/adguard/conf/AdGuardHome.yaml $D/

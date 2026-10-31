@@ -72,7 +72,9 @@ rsync $RSYNC_FLAGS --delete "${DOCKERDIR}/appdata/" "${NAS_BACKUP_DIR}/appdata/"
     --exclude 'immich/postgres*' \
     --exclude 'paperless/db' \
     --exclude 'plex' \
-    --exclude 'jellyfin' \
+    --exclude 'jellyfin/metadata' \
+    --exclude 'jellyfin/data/trickplay' \
+    --exclude 'jellyfin/log' \
     --exclude 'firefox' \
     --exclude 'immich/model-cache' \
     --exclude '**/cache' \
