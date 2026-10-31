@@ -19,7 +19,7 @@ services:
 
     volumes:
       - $DOCKERDIR/appdata/navidrome:/data
-      - $MEDIADIR/Music:/music:ro # Lidarr's root folder
+      - $MEDIADIR/Music:/music:ro # DroppedNeedle's library
 
     environment:
       TZ: $TZ

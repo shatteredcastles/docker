@@ -74,7 +74,6 @@ include:
   - prowlarr.yml
   - sonarr.yml
   - radarr.yml
-  - lidarr.yml
   - droppedneedle.yml
   - bindery.yml
   - seerr.yml
@@ -124,7 +123,6 @@ include:
   - node-exporter.yml
   - radarr-exporter.yml
   - sonarr-exporter.yml
-  - lidarr-exporter.yml
   - prowlarr-exporter.yml
   - sabnzbd-exporter.yml
   - qbittorrent-exporter.yml
