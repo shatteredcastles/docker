@@ -90,29 +90,33 @@ These stay on a `proxmox-migration` branch and get merged during Phase 2:
 
 ## Phase 1: Install Proxmox and build the guests
 
-**Phases 1 and 2 are one continuous window: you cut straight over to Proxmox.** Plan on 4–6 hours the first time. Services are down from 1.1 until the stack starts in 2.4. Home Assistant is down until 2.6, and LAN DNS until 2.7.
+**Phases 1 and 2 are one continuous window: you cut straight over to Proxmox.** Plan on 4–6 hours the first time. Services are down from the end of 1.2 until the stack starts in 2.4 (plus about 30 minutes for the drive check in 1.1). Home Assistant is down until 2.6, and LAN DNS until 2.7.
 
 The old Ubuntu stays untouched on the Kingston as the fallback. If something blocks you, see [If something goes wrong](#if-something-goes-wrong-fall-back-to-ubuntu) at the end of this phase.
 
-### 1.1 Before shutting down (on the old Ubuntu)
-- [ ] Tell the household that DNS and Home Assistant will be down for the afternoon or evening.
-- [ ] Router: set the secondary DHCP DNS server to `1.1.1.1`, so devices still get DNS while AdGuard is down. It's removed again in 2.7.
-- [ ] **Home Assistant backup**: Settings → System → Backups → **Backup now** → full backup, including the database. **Download** the `.tar` to the other PC.
-- [ ] Save the **backup encryption key**: Settings → System → Backups → ⋮ → **Encryption key** → download the emergency kit. You can't restore without it.
-- [ ] `sudo ~/docker/scripts/hs/backup-all.sh`
-- [ ] `cd ~/docker && git status`: should be clean. Commit and push anything that isn't.
-- [ ] `docker compose down`, then `sudo shutdown -h now`, and unplug power.
-
-### 1.2 Install the drives
+### 1.1 Install the drives and check them from Ubuntu (about 30 min of downtime)
+- [ ] On the server: `cd ~/docker && docker compose down`, then `sudo shutdown -h now`, and unplug power.
 - [x] **PCIe 3.0 x2 slot**: the Kingston (moved 2026-11-01; its heatsink was removed so it fits under the fan)
 - [ ] **PCIe 4.0 x4 slot** (the one that also takes U.2/22110): SN850X #1, **with the Kingston's old heatsink**. Leave the SN850X's label on and put the thermal pad over it. If the slot has an **M.2/U.2 switch**, set it to **M.2**.
 - [ ] **PCIe 3.0 x4 slot**: SN850X #2
 - [ ] Optional, for AMT later: move the LAN cable to the **other** 2.5G port (the I226-LM, MAC `...:bc:69`). If you skip this, leave it where it is.
+- [ ] Power on and let it boot Ubuntu (press `F7` and choose the Kingston if it doesn't).
+- [ ] **Ask Claude to check the drives** over `ssh hs`. Both SN850Xs should show up, one at PCIe 4.0 x4 (16 GT/s) and one at PCIe 3.0 x4 (8 GT/s), with healthy SMART data and sensible temperatures. The network should still be up on `192.168.0.56`.
+- [ ] Carrying straight on? Leave the stack down and continue with 1.2. Installing another day? `dcup` to bring everything back.
+
+### 1.2 Before shutting down for the install (on the old Ubuntu)
+- [ ] Tell the household that DNS and Home Assistant will be down for the afternoon or evening.
+- [ ] Router: set the secondary DHCP DNS server to `1.1.1.1`, so devices still get DNS while AdGuard is down. It's removed again in 2.7.
+- [ ] If the stack is down from 1.1, start Home Assistant on its own for the backup: `cd ~/docker && docker compose up -d homeassistant`, then open `http://192.168.0.56:8123`.
+- [ ] **Home Assistant backup**: Settings → System → Backups → **Backup now** → full backup, including the database. **Download** the `.tar` to the other PC.
+- [ ] Save the **backup encryption key**: Settings → System → Backups → ⋮ → **Encryption key** → download the emergency kit. You can't restore without it.
+- [ ] `sudo ~/docker/scripts/hs/backup-all.sh`. It needs the `immich_postgres` and `paperless_db` containers running, so if the stack is down, first run `docker compose up -d immich-postgres paperless-db`.
+- [ ] `cd ~/docker && git status`: should be clean. Commit and push anything that isn't.
+- [ ] `docker compose down`, then `sudo shutdown -h now`.
 
 ### 1.3 BIOS (press `Del` at power-on; `F7` is the boot menu)
-- [x] BIOS updated to 1.27; VMX, VT-d and SR-IOV enabled; Secure Boot disabled; CPU power limits set to 45/65 W (done 2026-11-01)
-- [ ] **Restore on AC power loss**: Power On (or Last State). Not confirmed yet.
-- [ ] Save and exit.
+- [x] BIOS updated to 1.27; VMX, VT-d and SR-IOV enabled; Secure Boot disabled; CPU power limits set to 45/65 W; Restore on AC power loss = Power On (all done 2026-11-01)
+- [ ] Nothing left to change here. Go straight to the USB stick in 1.4.
 
 ### 1.4 Install Proxmox
 - [ ] Boot the USB stick (`F7`), then choose **Install Proxmox VE (Graphical)**.
@@ -318,7 +322,7 @@ Only if something blocks you, such as the GPU test in 1.8 failing or running out
 - [ ] Power on and press `F7`. Choose the **ubuntu** entry on the Kingston.
 - [ ] In the BIOS (`Del`), put the **ubuntu** entry first, so a power cut brings back the old system.
 - [ ] `cd ~/docker && dcup`, then check `dcps`, Home Assistant and DNS. Remove the router's `1.1.1.1` secondary DNS if you like.
-- [ ] Next time, boot Proxmox with `F7` and carry on where you stopped. Redo the Home Assistant backup from 1.1 first, since the old one will be out of date.
+- [ ] Next time, boot Proxmox with `F7` and carry on where you stopped. Redo the Home Assistant backup from 1.2 first, since the old one will be out of date.
 
 ---
 
@@ -397,7 +401,7 @@ The UPS USB cable is plugged into the MS-01, so the Proxmox host sees it directl
 - [ ] Optional: in Synology DSM, **Control Panel → Hardware & Power → UPS** → enable, choose **Synology UPS server**, server IP `192.168.0.10`.
 
 ### 2.6 Restore Home Assistant into `haos`
-- [ ] Open `http://192.168.0.57:8123` → **Upload backup** → choose the `.tar` from 1.1 → enter the encryption key → restore. This takes 5–15 minutes.
+- [ ] Open `http://192.168.0.57:8123` → **Upload backup** → choose the `.tar` from 1.2 → enter the encryption key → restore. This takes 5–15 minutes.
 - [ ] Install apps from **Settings → Apps → App store** (older versions call this Add-ons). For each one, ✓ Start on boot and ✓ Watchdog:
   - [ ] **File editor** (or Studio Code Server)
   - [ ] **Mosquitto broker**
@@ -431,7 +435,7 @@ The UPS USB cable is plugged into the MS-01, so the Proxmox host sees it directl
 - [ ] `docker restart frigate`, then check in Home Assistant that Frigate events arrive.
 
 ### 2.7 Switch the network over
-- [ ] Router: set the DHCP DNS server to **`192.168.0.53`**. Remove the temporary `1.1.1.1` secondary from 1.1.
+- [ ] Router: set the DHCP DNS server to **`192.168.0.53`**. Remove the temporary `1.1.1.1` secondary from 1.2.
 - [ ] Router port forwards are unchanged: 80, 443 and 21115–21119 still go to `192.168.0.56`.
 - [ ] Renew DHCP on a laptop or phone (toggle Wi-Fi), then check that ads are blocked and `*.shatteredcastle.com` resolves to `.56`.
 - [ ] **Tailscale DNS**: admin console → **DNS → Nameservers → Add nameserver → Custom** → `192.168.0.53`, then ✓ **Override local DNS**. Away from home you then get ad-blocking, and your `*.shatteredcastle.com` names resolve to the LAN address through the subnet route.
@@ -444,6 +448,7 @@ The UPS USB cable is plugged into the MS-01, so the Proxmox host sees it directl
 - [ ] Immich: upload a photo from your phone. Faces and search still work.
 - [ ] *arr apps: a test grab downloads and imports. qBittorrent reports the VPN IP (gluetun).
 - [ ] Peanut shows the UPS. Uptime Kuma is all green.
+- [ ] `dclogs cloudflare-ddns`: it detects your public IP and reports the A records for both domains as up to date.
 - [ ] `sudo ~/docker/scripts/hs/backup-all.sh` runs cleanly.
 
 ### 2.9 Proxmox backups
