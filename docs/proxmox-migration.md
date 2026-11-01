@@ -8,11 +8,11 @@ Tick boxes as you go (`- [x]`). Each phase says whether services go down.
 
 ```
 MS-01 · Proxmox VE (ZFS mirror on 2× SN850X)
- ├─ CT 100  dns    Debian LXC: AdGuard Home + Tailscale subnet router
+ ├─ CT 100  dns    Debian LXC: AdGuard Home
  ├─ VM 101  haos   Home Assistant OS + Mosquitto, Piper (and Whisper) apps
  ├─ VM 102  hs     Ubuntu Server + Docker: this repo, iGPU passed through
  ├─ Kingston NVMe  Frigate recordings (after the old Ubuntu is retired)
- └─ Host: NUT (UPS over USB), SMART, backups to NAS
+ └─ Host: Tailscale subnet router, NUT (UPS over USB), SMART, backups to NAS
 ```
 
 Start order: `dns` (1) → `haos` (2) → `hs` (3).
@@ -24,8 +24,8 @@ Start order: `dns` (1) → `haos` (2) → `hs` (3).
 | Router | 192.168.0.1 | Gateway |
 | Synology | 192.168.0.2 | Existing |
 | Hue bridge | 192.168.0.5 | Existing, **don't reuse** |
-| Proxmox host `pve` | **192.168.0.10** | New. Web UI: `https://192.168.0.10:8006` |
-| `dns` LXC | **192.168.0.53** | New. AdGuard + Tailscale |
+| Proxmox host `pve` | **192.168.0.10** | New. Web UI: `https://192.168.0.10:8006`. Tailscale subnet router |
+| `dns` LXC | **192.168.0.53** | New. AdGuard |
 | `hs` VM | **192.168.0.56** | Same as today, so port forwards, NFS permissions and integrations keep working |
 | `haos` VM | **192.168.0.57** | New. Was `192.168.0.56:8123` |
 | Storage link (later) | 10.10.10.0/24 | 10G DAC between the MS-01 and the NAS |
@@ -140,6 +140,21 @@ At the end of this phase you boot back into the old Ubuntu. Nothing on the Kings
   - **Add** → **No-Subscription** → Add
 - [ ] **pve → Updates → Refresh**, then **Upgrade** (a shell opens; answer `Y`). Reboot if a new kernel was installed.
 - [ ] **pve → Shell**: `zpool status` should show `rpool` as a `mirror-0` with both SN850Xs `ONLINE`.
+- [ ] From the other PC: `ssh-copy-id root@192.168.0.10`, so Claude can run checks on the host.
+- [ ] **Tailscale on the host.** It runs here rather than in a guest so you can always reach the Proxmox UI and every console, even when a VM or the `dns` LXC is broken. pve Shell:
+  ```bash
+  curl -fsSL https://tailscale.com/install.sh | sh
+  printf 'net.ipv4.ip_forward = 1\nnet.ipv6.conf.all.forwarding = 1\n' > /etc/sysctl.d/99-tailscale.conf
+  sysctl -p /etc/sysctl.d/99-tailscale.conf
+  tailscale up --advertise-routes=192.168.0.0/24 --accept-dns=false
+  ```
+  - Open the login link it prints. Add `--advertise-exit-node` to the `tailscale up` line if you also want to route all your traffic through home on public Wi-Fi.
+  - If it prints a warning about UDP GRO forwarding, run the `ethtool` command it suggests. That's a throughput tweak, not an error.
+- [ ] In the Tailscale admin console:
+  - **Machines → pve → Edit route settings** → approve `192.168.0.0/24` (and **Use as exit node** if you advertised it)
+  - **⋯ → Disable key expiry**. The old `hs` node is logged out, most likely because its key expired.
+- [ ] Test from your phone on cellular with Tailscale on: `https://192.168.0.10:8006` loads.
+- [ ] **Don't change Tailscale's DNS settings yet.** Until the cutover, the server mostly runs the old Ubuntu, so `pve` and AdGuard at `.53` are offline most of the time. That's step 2.7.
 
 ### 1.6 Backup storage on the Synology
 - [ ] Synology DSM: **Control Panel → Shared Folder → Create**, name `proxmox`, on volume1.
@@ -247,15 +262,7 @@ Run these in **pve → Shell**.
     - Bridge `vmbr0`
     - IPv4 **Static**: `192.168.0.53/24`, Gateway `192.168.0.1`
   - **DNS**: use host settings. Don't start it yet.
-- [ ] **100 → Options**: ✓ Start at boot, Start/Shutdown order `1`.
-- [ ] Give it the tunnel device Tailscale needs (pve Shell):
-  ```bash
-  cat >> /etc/pve/lxc/100.conf <<'EOF'
-  lxc.cgroup2.devices.allow: c 10:200 rwm
-  lxc.mount.entry: /dev/net/tun dev/net/tun none bind,create=file
-  EOF
-  pct start 100
-  ```
+- [ ] **100 → Options**: ✓ Start at boot, Start/Shutdown order `1`. Then **Start** it.
 - [ ] Install AdGuard Home (`pct enter 100`):
   ```bash
   apt update && apt full-upgrade -y && apt install -y curl
@@ -274,18 +281,6 @@ Run these in **pve → Shell**.
   - If DNS-over-TLS (port 853) was set up with certificate paths from the old container, turn encryption off under **Settings → Encryption**, or fix the paths.
 - [ ] **Filters → DNS rewrites**: make sure `*.shatteredcastle.com` → `192.168.0.56` exists (and the same for `*.shatteredcastles.com`). This keeps LAN traffic local instead of going out to the router and back.
 - [ ] Test from your laptop: `nslookup google.com 192.168.0.53` and `nslookup jellyfin.shatteredcastle.com 192.168.0.53` (the second should return `.56`).
-- [ ] Install Tailscale as a subnet router (`pct enter 100`):
-  ```bash
-  curl -fsSL https://tailscale.com/install.sh | sh
-  printf 'net.ipv4.ip_forward = 1\nnet.ipv6.conf.all.forwarding = 1\n' > /etc/sysctl.d/99-tailscale.conf
-  sysctl -p /etc/sysctl.d/99-tailscale.conf
-  tailscale up --advertise-routes=192.168.0.0/24 --accept-dns=false
-  ```
-  Open the login link it prints.
-- [ ] In the Tailscale admin console:
-  - **Machines → dns → Edit route settings** → approve `192.168.0.0/24`
-  - **⋯ → Disable key expiry**
-- [ ] **Tailscale admin → DNS → Nameservers → Add nameserver → Custom** → `192.168.0.53`, then ✓ **Override local DNS**.
 
 ### 1.10 Create the `haos` VM (ID 101)
 - [ ] pve Shell: download the latest Home Assistant OS image and create the VM:
@@ -443,6 +438,7 @@ The UPS USB cable is plugged into the MS-01, so the Proxmox host sees it directl
 - [ ] Router: set the DHCP DNS server to **`192.168.0.53`**. Remove the temporary `1.1.1.1` if you added it.
 - [ ] Router port forwards are unchanged: 80, 443 and 21115–21119 still go to `192.168.0.56`.
 - [ ] Renew DHCP on a laptop or phone (toggle Wi-Fi), then check that ads are blocked and `*.shatteredcastle.com` resolves to `.56`.
+- [ ] **Tailscale DNS**: admin console → **DNS → Nameservers → Add nameserver → Custom** → `192.168.0.53`, then ✓ **Override local DNS**. Away from home you then get ad-blocking, and your `*.shatteredcastle.com` names resolve to the LAN address through the subnet route.
 
 ### 2.8 Test everything
 - [ ] From outside (phone on cellular, Tailscale off): Jellyfin, Immich (`photos.`), Seerr, Audiobookshelf, Vaultwarden and `haos.` all load.
@@ -460,7 +456,8 @@ The UPS USB cable is plugged into the MS-01, so the Proxmox host sees it directl
 - [ ] Select each job → **Run now**, then check the backups appear under **synology → Backups**.
 
 ### 2.10 Tidy up
-- [ ] Tailscale admin: remove the old `hs` machine. The `dns` LXC is now the way in.
+- [ ] Tailscale admin: remove the old `hs` machine (it shows as logged out). `pve` is now the way in.
+- [ ] Old Ubuntu's Tailscale isn't carried over: the `hs` VM doesn't need it, because the subnet route reaches `192.168.0.56`.
 - [ ] Update the README host table and push.
 
 ---
@@ -469,7 +466,7 @@ The UPS USB cable is plugged into the MS-01, so the Proxmox host sees it directl
 
 ### Within the first week (ask Claude)
 - [ ] Delete the compose files and appdata for services that moved: `homeassistant`, `mosquitto`, `piper`, `adguard`, plus the `nut-server` config.
-- [ ] Make admin apps **LAN/Tailscale only** with an IP-allowlist middleware chain: VS Code, Kasm, Firefox, Portainer, Dozzle, the *arr apps, qBittorrent, Glances. Tailscale clients reach Traefik from `192.168.0.53`, which is already in `LOCAL_IPS`.
+- [ ] Make admin apps **LAN/Tailscale only** with an IP-allowlist middleware chain: VS Code, Kasm, Firefox, Portainer, Dozzle, the *arr apps, qBittorrent, Glances. Tailscale clients reach Traefik from the subnet router's address, `192.168.0.10`, which is already in `LOCAL_IPS`.
 - [ ] **gluetun port forwarding**: `VPN_PORT_FORWARDING=on`, a non-US PIA region (Canada), and automatic qBittorrent port updates. Or switch to a provider with WireGuard and port forwarding, such as ProtonVPN or AirVPN.
 - [ ] **Immich**: switch to the `immich-machine-learning:release-openvino` image, then turn on QSV under **Administration → Video transcoding → Hardware acceleration**.
 - [ ] **Frigate**: set `ffmpeg.hwaccel_args: preset-intel-qsv-h264` (or `-h265`, depending on your cameras), and run detection on the cameras' substreams.
