@@ -14,10 +14,10 @@ Some services run outside this repo so that the house keeps working when the Doc
 
 | Guest | IP | Runs |
 |---|---|---|
-| CT 100 `dns` | 192.168.0.53 | AdGuard Home, Tailscale subnet router (192.168.0.0/24) |
+| CT 100 `dns` | 192.168.0.53 | AdGuard Home |
 | VM 101 `haos` | 192.168.0.57 | Home Assistant OS with the Mosquitto and Piper apps |
 | VM 102 `hs` | 192.168.0.56 | This repo |
-| Host | 192.168.0.10 | NUT (UPS over USB, port 3493), backups to the Synology `proxmox` share |
+| Host | 192.168.0.10 | Tailscale subnet router (192.168.0.0/24), NUT (UPS over USB, port 3493), backups to the Synology `proxmox` share |
 
 Traefik still fronts the outside services through file rules: [app-haos-no-auth.yml](appdata/traefik3/rules/hs/app-haos-no-auth.yml) and [app-adguard.yml](appdata/traefik3/rules/hs/app-adguard.yml). Migration steps: [docs/proxmox-migration.md](docs/proxmox-migration.md).
 
