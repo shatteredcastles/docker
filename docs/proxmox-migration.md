@@ -88,30 +88,30 @@ These stay on a `proxmox-migration` branch and get merged during Phase 2:
 
 ---
 
-## Phase 1: Install Proxmox and build the guests (downtime: 2–3 h, then back to Ubuntu)
+## Phase 1: Install Proxmox and build the guests
 
-At the end of this phase you boot back into the old Ubuntu. Nothing on the Kingston gets changed.
+**Phases 1 and 2 are one continuous window: you cut straight over to Proxmox.** Plan on 4–6 hours the first time. Services are down from 1.1 until the stack starts in 2.4. Home Assistant is down until 2.6, and LAN DNS until 2.7.
 
-### 1.1 Shut down cleanly
-- [ ] Tell the household that DNS and Home Assistant will be down. Optionally set the router's secondary DHCP DNS to `1.1.1.1` for the evening.
-- [ ] `cd ~/docker && docker compose down`
-- [ ] `sudo shutdown -h now`, then unplug power.
+The old Ubuntu stays untouched on the Kingston as the fallback. If something blocks you, see [If something goes wrong](#if-something-goes-wrong-fall-back-to-ubuntu) at the end of this phase.
+
+### 1.1 Before shutting down (on the old Ubuntu)
+- [ ] Tell the household that DNS and Home Assistant will be down for the afternoon or evening.
+- [ ] Router: set the secondary DHCP DNS server to `1.1.1.1`, so devices still get DNS while AdGuard is down. It's removed again in 2.7.
+- [ ] **Home Assistant backup**: Settings → System → Backups → **Backup now** → full backup, including the database. **Download** the `.tar` to the other PC.
+- [ ] Save the **backup encryption key**: Settings → System → Backups → ⋮ → **Encryption key** → download the emergency kit. You can't restore without it.
+- [ ] `sudo ~/docker/scripts/hs/backup-all.sh`
+- [ ] `cd ~/docker && git status`: should be clean. Commit and push anything that isn't.
+- [ ] `docker compose down`, then `sudo shutdown -h now`, and unplug power.
 
 ### 1.2 Install the drives
-- [ ] Open the MS-01 (see the Minisforum manual). Check the slot labels against the manual:
-  - **PCIe 4.0 x4 slot** (the one that also takes U.2/22110): SN850X #1. If it has an **M.2/U.2 switch**, set it to **M.2**.
-  - **PCIe 3.0 x4 slot**: SN850X #2
-  - **PCIe 3.0 x2 slot**: the existing Kingston (move it here if it isn't already)
+- [x] **PCIe 3.0 x2 slot**: the Kingston (moved 2026-11-01; its heatsink was removed so it fits under the fan)
+- [ ] **PCIe 4.0 x4 slot** (the one that also takes U.2/22110): SN850X #1, **with the Kingston's old heatsink**. Leave the SN850X's label on and put the thermal pad over it. If the slot has an **M.2/U.2 switch**, set it to **M.2**.
+- [ ] **PCIe 3.0 x4 slot**: SN850X #2
 - [ ] Optional, for AMT later: move the LAN cable to the **other** 2.5G port (the I226-LM, MAC `...:bc:69`). If you skip this, leave it where it is.
 
 ### 1.3 BIOS (press `Del` at power-on; `F7` is the boot menu)
-- [ ] Flash the BIOS update first, if you downloaded one.
-- [ ] **Intel VMX / Virtualization**: Enabled
-- [ ] **VT-d**: Enabled
-- [ ] **SR-IOV support**: Enabled, if the option exists
-- [ ] Integrated graphics: leave enabled
-- [ ] **Secure Boot**: Disabled
-- [ ] **Restore on AC power loss**: Power On (or Last State)
+- [x] BIOS updated to 1.27; VMX, VT-d and SR-IOV enabled; Secure Boot disabled; CPU power limits set to 45/65 W (done 2026-11-01)
+- [ ] **Restore on AC power loss**: Power On (or Last State). Not confirmed yet.
 - [ ] Save and exit.
 
 ### 1.4 Install Proxmox
@@ -154,7 +154,7 @@ At the end of this phase you boot back into the old Ubuntu. Nothing on the Kings
   - **Machines → pve → Edit route settings** → approve `192.168.0.0/24` (and **Use as exit node** if you advertised it)
   - **⋯ → Disable key expiry**. The old `hs` node is logged out, most likely because its key expired.
 - [ ] Test from your phone on cellular with Tailscale on: `https://192.168.0.10:8006` loads.
-- [ ] **Don't change Tailscale's DNS settings yet.** Until the cutover, the server mostly runs the old Ubuntu, so `pve` and AdGuard at `.53` are offline most of the time. That's step 2.7.
+- [ ] **Don't change Tailscale's DNS settings yet.** AdGuard at `.53` doesn't exist until 1.9, and its LAN switch-over is step 2.7. Set Tailscale's DNS there.
 
 ### 1.6 Backup storage on the Synology
 - [ ] Synology DSM: **Control Panel → Shared Folder → Create**, name `proxmox`, on volume1.
@@ -247,7 +247,7 @@ Run these in **pve → Shell**.
     echo 'options i915 enable_guc=3' | sudo tee /etc/modprobe.d/i915.conf
     sudo update-initramfs -u && sudo reboot
     ```
-- [ ] **If the GPU doesn't work, stop and don't continue to Phase 2.** Boot back into Ubuntu (see 1.11) and work out the GPU first. Fallbacks, in order:
+- [ ] **If the GPU doesn't work, stop and don't continue to Phase 2.** Fall back to Ubuntu (see [If something goes wrong](#if-something-goes-wrong-fall-back-to-ubuntu)) and work out the GPU first. Fallbacks, in order:
   1. **SR-IOV**: undo 1.7 (the vfio and blacklist files) and follow the `strongtz/i915-sriov-dkms` README on the host and in the VM.
   2. **Run Docker in a privileged LXC** instead of a VM, with `/dev/dri` bind-mounted in and NFS mounted on the host.
 
@@ -310,29 +310,25 @@ Run these in **pve → Shell**.
   ha network update <iface> --ipv4-method static \
     --ipv4-address 192.168.0.57/24 --ipv4-gateway 192.168.0.1 --ipv4-nameserver 192.168.0.53
   ```
-- [ ] Open `http://192.168.0.57:8123`. It should show the onboarding screen. **Don't create a user or finish onboarding.** You'll restore your backup in Phase 2.
+- [ ] Open `http://192.168.0.57:8123`. It should show the onboarding screen. **Don't create a user or finish onboarding.** You'll restore your backup in step 2.6.
 
-### 1.11 Boot back into Ubuntu
+### If something goes wrong: fall back to Ubuntu
+Only if something blocks you, such as the GPU test in 1.8 failing or running out of time. Otherwise go straight on to Phase 2.
 - [ ] pve Shell: `umount /mnt/old`, then **pve → Shutdown**.
 - [ ] Power on and press `F7`. Choose the **ubuntu** entry on the Kingston.
-- [ ] In the BIOS (`Del`), put the **ubuntu** entry first for now, so a power cut brings back the old system.
-- [ ] Check that everything is back up: `dcps`, Home Assistant and DNS.
+- [ ] In the BIOS (`Del`), put the **ubuntu** entry first, so a power cut brings back the old system.
+- [ ] `cd ~/docker && dcup`, then check `dcps`, Home Assistant and DNS. Remove the router's `1.1.1.1` secondary DNS if you like.
+- [ ] Next time, boot Proxmox with `F7` and carry on where you stopped. Redo the Home Assistant backup from 1.1 first, since the old one will be out of date.
 
 ---
 
-## Phase 2: Cutover (downtime: 2–4 h)
+## Phase 2: Cutover (continues straight from Phase 1)
 
-### 2.1 On the old Ubuntu, just before shutting down
-- [ ] **Home Assistant backup**: Settings → System → Backups → **Backup now** → full backup, including the database. **Download** the `.tar` to your laptop.
-- [ ] Save the **backup encryption key**: Settings → System → Backups → ⋮ → **Encryption key** → download the emergency kit. You can't restore without it.
-- [ ] `sudo ~/docker/scripts/hs/backup-all.sh`
-- [ ] Commit and push anything left in the repo.
-- [ ] `cd ~/docker && docker compose down && sudo shutdown -h now`
+### 2.1 Check the BIOS boot order
+- [ ] In the BIOS (`Del`), make sure **Linux Boot Manager / proxmox** is first, so a power cut brings Proxmox back up rather than the old Ubuntu. Installing Proxmox usually sets this already.
 
-### 2.2 Boot Proxmox and copy the data across
-- [ ] Power on, open the BIOS (`Del`), put **Linux Boot Manager / proxmox** first, and save.
-- [ ] Proxmox boots `dns`, then `haos`, then `hs`.
-- [ ] pve Shell: `mount -o ro /dev/nvmeXn1p2 /mnt/old` (the Kingston, as in 1.9).
+### 2.2 Copy the data across
+- [ ] The Kingston should still be mounted read-only at `/mnt/old` from 1.9. Check with `ls /mnt/old/home/james/docker`. If it isn't, run `mount -o ro /dev/nvmeXn1p2 /mnt/old` in the pve Shell.
 - [ ] In the `hs` VM, pull the data across. Root SSH on pve is allowed by default.
   ```bash
   sudo rsync -aHAX --numeric-ids --info=progress2 \
@@ -401,7 +397,7 @@ The UPS USB cable is plugged into the MS-01, so the Proxmox host sees it directl
 - [ ] Optional: in Synology DSM, **Control Panel → Hardware & Power → UPS** → enable, choose **Synology UPS server**, server IP `192.168.0.10`.
 
 ### 2.6 Restore Home Assistant into `haos`
-- [ ] Open `http://192.168.0.57:8123` → **Upload backup** → choose the `.tar` from 2.1 → enter the encryption key → restore. This takes 5–15 minutes.
+- [ ] Open `http://192.168.0.57:8123` → **Upload backup** → choose the `.tar` from 1.1 → enter the encryption key → restore. This takes 5–15 minutes.
 - [ ] Install apps from **Settings → Apps → App store** (older versions call this Add-ons). For each one, ✓ Start on boot and ✓ Watchdog:
   - [ ] **File editor** (or Studio Code Server)
   - [ ] **Mosquitto broker**
@@ -435,7 +431,7 @@ The UPS USB cable is plugged into the MS-01, so the Proxmox host sees it directl
 - [ ] `docker restart frigate`, then check in Home Assistant that Frigate events arrive.
 
 ### 2.7 Switch the network over
-- [ ] Router: set the DHCP DNS server to **`192.168.0.53`**. Remove the temporary `1.1.1.1` if you added it.
+- [ ] Router: set the DHCP DNS server to **`192.168.0.53`**. Remove the temporary `1.1.1.1` secondary from 1.1.
 - [ ] Router port forwards are unchanged: 80, 443 and 21115–21119 still go to `192.168.0.56`.
 - [ ] Renew DHCP on a laptop or phone (toggle Wi-Fi), then check that ads are blocked and `*.shatteredcastle.com` resolves to `.56`.
 - [ ] **Tailscale DNS**: admin console → **DNS → Nameservers → Add nameserver → Custom** → `192.168.0.53`, then ✓ **Override local DNS**. Away from home you then get ad-blocking, and your `*.shatteredcastle.com` names resolve to the LAN address through the subnet route.
