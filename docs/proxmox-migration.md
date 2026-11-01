@@ -99,7 +99,6 @@ The old Ubuntu stays untouched on the Kingston as the fallback. If something blo
 - [x] **PCIe 3.0 x2 slot**: the Kingston (moved 2026-11-01; its heatsink was removed so it fits under the fan)
 - [ ] **PCIe 4.0 x4 slot** (the one that also takes U.2/22110): SN850X #1, **with the Kingston's old heatsink**. Leave the SN850X's label on and put the thermal pad over it. If the slot has an **M.2/U.2 switch**, set it to **M.2**.
 - [ ] **PCIe 3.0 x4 slot**: SN850X #2
-- [ ] Optional, for AMT later: move the LAN cable to the **other** 2.5G port (the I226-LM, MAC `...:bc:69`). If you skip this, leave it where it is.
 - [ ] Power on and let it boot Ubuntu (press `F7` and choose the Kingston if it doesn't).
 - [ ] **Ask Claude to check the drives** over `ssh hs`. Both SN850Xs should show up, one at PCIe 4.0 x4 (16 GT/s) and one at PCIe 3.0 x4 (8 GT/s), with healthy SMART data and sensible temperatures. The network should still be up on `192.168.0.56`.
 - [ ] Carrying straight on? Leave the stack down and continue with 1.2. Installing another day? `dcup` to bring everything back.
@@ -129,7 +128,7 @@ The old Ubuntu stays untouched on the Kingston as the fallback. If something blo
 - [ ] Location: United States / `America/Denver` / U.S. keyboard.
 - [ ] Password: the one from 0.4. Email: your address (used for alerts).
 - [ ] Management network:
-  - Interface: the one showing a **link** (MAC `...:bc:68`, or `...:bc:69` if you moved the cable)
+  - Interface: the one showing a **link** (MAC `...:bc:68`)
   - Hostname: `pve.shatteredcastle.com`
   - IP: `192.168.0.10/24`
   - Gateway: `192.168.0.1`
@@ -500,7 +499,10 @@ The UPS USB cable is plugged into the MS-01, so the Proxmox host sees it directl
 
 ### Optional
 - [ ] **Alerts**: Datacenter → Notifications → Add → Webhook to your ntfy (`https://ntfy.shatteredcastle.com/proxmox`), or set up Gotify/email.
-- [ ] **Intel AMT** (remote power control and screen): needs the cable on the I226-LM port. Enable it in the BIOS, set it up in MEBx, and manage it with MeshCommander. After boot the screen goes blank because the GPU is passed through, but power control still works.
+- [ ] **Intel AMT** (remote power on/off and a remote screen, even when Proxmox won't boot): it only works on the I226-LM port (MAC `...:bc:69`), so the LAN cable has to move there.
+  - Move the cable, then in Proxmox: **pve → System → Network → vmbr0 → Edit → Bridge ports**, change it to the I226-LM interface's name, and **Apply Configuration**. Do this from the local console, since the network drops until it's applied.
+  - Enable AMT in the BIOS, set a strong password in MEBx, and manage it with MeshCommander or MeshCentral. Never expose it to the internet.
+  - After boot its remote screen goes blank, because the GPU is passed through to `hs`. Power control still works.
 - [ ] **RAM**: when prices drop, fit 2×48 GB DDR5-5600 SO-DIMMs and give `hs` more memory.
 - [ ] **ZFS health**: check `zpool status` monthly. Proxmox runs a ZFS scrub monthly by default.
 
