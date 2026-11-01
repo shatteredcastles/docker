@@ -459,6 +459,7 @@ The UPS USB cable is plugged into the MS-01, so the Proxmox host sees it directl
 - [ ] Tailscale admin: remove the old `hs` machine (it shows as logged out). `pve` is now the way in.
 - [ ] Old Ubuntu's Tailscale isn't carried over: the `hs` VM doesn't need it, because the subnet route reaches `192.168.0.56`.
 - [ ] Update the README host table and push.
+- [ ] Remove the temporary passwordless sudo on `hs`: `sudo rm /etc/sudoers.d/90-migration`.
 
 ---
 
