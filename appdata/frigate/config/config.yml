@@ -1,7 +1,7 @@
 mqtt:
-  host: mosquitto
-  user: frigate
-  password: 7uafnvp980kdv4
+  host: 192.168.0.57  # Mosquitto app in the haos VM
+  user: '{FRIGATE_MQTT_USER}'
+  password: '{FRIGATE_MQTT_PASS}'
   topic_prefix: frigate
 
 # ffmpeg:
@@ -50,9 +50,9 @@ cameras:
         pre_capture: 5
         post_capture: 5
       continuous:
-        days: 2
+        days: 1  # interim; was 2 (Phase 3 of docs/proxmox-migration.md)
       motion:
-        days: 3
+        days: 1  # interim; was 3
     snapshots:
       enabled: true
       timestamp: true
@@ -116,9 +116,9 @@ cameras:
         pre_capture: 5
         post_capture: 5
       continuous:
-        days: 2
+        days: 1  # interim; was 2 (Phase 3 of docs/proxmox-migration.md)
       motion:
-        days: 3
+        days: 1  # interim; was 3
     snapshots:
       enabled: true
       timestamp: true

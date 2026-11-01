@@ -14,4 +14,4 @@ http:
     haos-svc:
       loadBalancer:
         servers:
-          - url: "http://host.docker.internal:8123"  # or whatever your external host's IP:port is 
+          - url: "http://192.168.0.57:8123"  # haos VM on Proxmox

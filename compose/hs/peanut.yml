@@ -1,29 +1,10 @@
 services:
-  nut-server:
-    image: instantlinux/nut-upsd
-    container_name: nut-server
-    restart: unless-stopped
-    privileged: true
-    devices:
-      - /dev/bus/usb:/dev/bus/usb
-    volumes:
-      - $DOCKERDIR/appdata/peanut:/etc/nut
-      # - $DOCKERDIR/appdata/peanut/ups.conf:/etc/nut/ups.conf:ro
-      # - $DOCKERDIR/appdata/peanut/upsmon.conf:/etc/nut/upsmon.conf:ro
-      # - $DOCKERDIR/appdata/peanut/upsd.users:/etc/nut/upsd.users:ro
-    environment:
-      - NUT_UPSD_LISTEN=0.0.0.0
-      - SKIP_AUTO_CONFIG=true
-    networks:
-      - t3_proxy
-    command: sh -c "upsdrvctl start && upsd && upsmon -D"
+  # NUT (the UPS server) runs on the Proxmox host, which the UPS is plugged into over USB.
   peanut:
-    depends_on: 
-      - nut-server
     image: brandawg93/peanut:latest
     container_name: peanut
     environment:
-      - NUT_HOST=nut-server
+      - NUT_HOST=192.168.0.10
       - NUT_PORT=3493
       - WEB_PORT=8080
       - AUTH_DISABLED=true
