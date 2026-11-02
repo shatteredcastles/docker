@@ -136,6 +136,16 @@ For IPs that should be trusted permanently (home, work, family), add them to [wh
 
 [scripts/hs/backup-all.sh](scripts/hs/backup-all.sh) dumps the Immich and Paperless Postgres databases, then rsyncs the dumps, `appdata/` (minus database folders and caches) and the Immich library to the NAS. Run it as root from cron.
 
+On the Proxmox host (backups go to the Synology `proxmox` share):
+
+| What | When | How |
+|---|---|---|
+| `dns` + `haos` | Nightly 02:30 | Proxmox backup job `nightly-dns-haos` (keep 7 daily, 4 weekly) |
+| `hs` VM | Saturday 23:30 (~75 min, 163 GB) | Proxmox backup job `weekly-hs` (keep 4 weekly) |
+| Host config: `/etc/pve`, network, GPU passthrough, NUT, Tailscale | Nightly 01:45 | [scripts/pve/pve-config-backup.sh](scripts/pve/pve-config-backup.sh), installed at `/usr/local/sbin/` with `/etc/cron.d/pve-config-backup`. Keeps 30 archives in `host-config/` |
+
+DSM is slow while the weekly `hs` backup runs. To restore the host config after a reinstall, extract the newest `pve-config-*.tar.gz` with `tar -xzf … --absolute-names -C /` (start from `/etc/pve/` and the GPU/network files), then reboot.
+
 ## What gets committed
 
 The repo is private. `.gitignore` tracks everything by default and excludes:
