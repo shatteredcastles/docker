@@ -25,7 +25,7 @@ services:
       - "traefik.http.routers.dozzle-rtr.entrypoints=websecure"
       - "traefik.http.routers.dozzle-rtr.rule=Host(`dozzle.$DOMAINNAME_HS`)"
       # Middlewares
-      - "traefik.http.routers.dozzle-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.dozzle-rtr.middlewares=chain-lan-oauth@file"
       # HTTP Services
       - "traefik.http.routers.dozzle-rtr.service=dozzle-svc"
       - "traefik.http.services.dozzle-svc.loadbalancer.server.port=8080"

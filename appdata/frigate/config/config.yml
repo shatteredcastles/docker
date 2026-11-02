@@ -4,8 +4,8 @@ mqtt:
   password: '{FRIGATE_MQTT_PASS}'
   topic_prefix: frigate
 
-# ffmpeg:
-#   hwaccel_args: -hwaccel qsv -hwaccel_output_format nv12 -c:v h264_qsv
+ffmpeg:
+  hwaccel_args: preset-vaapi # decode camera streams on the iGPU
 #   input_args: -avoid_negative_ts make_zero -fflags +genpts+discardcorrupt -flags low_delay -strict experimental -analyzeduration 1000M -probesize 1000M -rw_timeout 5000000
 #   output_args:
 #     record: -f segment -segment_time 10 -segment_format mp4 -reset_timestamps 1 -strftime 1 -c copy

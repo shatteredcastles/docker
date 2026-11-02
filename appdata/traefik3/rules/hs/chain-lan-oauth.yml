@@ -1,0 +1,11 @@
+http:
+  middlewares:
+    # Admin tools: LAN/Tailscale only, then Google OAuth as usual
+    chain-lan-oauth:
+      chain:
+        middlewares:
+          - middlewares-lan-only
+          - middlewares-traefik-bouncer
+          - middlewares-rate-limit
+          - middlewares-secure-headers
+          - middlewares-oauth

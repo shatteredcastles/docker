@@ -16,7 +16,7 @@ services:
       - "traefik.http.routers.adminer-rtr.rule=Host(`adminer.$DOMAINNAME`)"
       # Middlewares
       # - "traefik.http.routers.adminer-rtr-bypass.middlewares=chain-no-auth@file"
-      - "traefik.http.routers.adminer-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.adminer-rtr.middlewares=chain-lan-oauth@file"
       # HTTP Services
       - "traefik.http.routers.adminer-rtr.service=adminer-svc"
       - "traefik.http.services.adminer-svc.loadbalancer.server.port=8080"

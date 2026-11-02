@@ -29,6 +29,11 @@ services:
       VPN_TYPE: openvpn
       OPENVPN_USER: $PIA_USERNAME
       OPENVPN_PASSWORD: $PIA_PASSWORD
+      # Port forwarding (PIA only offers it outside the US). Gluetun pushes the
+      # forwarded port into qBittorrent, which shares this network namespace.
+      SERVER_REGIONS: CA Vancouver,CA Toronto,CA Montreal
+      VPN_PORT_FORWARDING: "on"
+      VPN_PORT_FORWARDING_UP_COMMAND: '/bin/sh -c ''wget -O- --retry-connrefused --post-data "json={\"listen_port\":{{PORTS}},\"current_network_interface\":\"tun0\",\"random_port\":false,\"upnp\":false}" http://127.0.0.1:8080/api/v2/app/setPreferences 2>&1'''
       HTTP_CONTROL_SERVER_AUTH_DEFAULT_ROLE: '{"auth":"none"}'
     labels:
       - "traefik.enable=true"
@@ -36,14 +41,14 @@ services:
       - "traefik.http.routers.gluetun-qbittorrent-rtr.entrypoints=websecure"
       - "traefik.http.routers.gluetun-qbittorrent-rtr.rule=Host(`qbit.$DOMAINNAME_HS`)" # qBittorrent
       # Middlewares
-      - "traefik.http.routers.gluetun-qbittorrent-rtr.middlewares=chain-oauth@file" # qBittorrent
+      - "traefik.http.routers.gluetun-qbittorrent-rtr.middlewares=chain-lan-oauth@file" # qBittorrent
       # HTTP Services
       - "traefik.http.routers.gluetun-qbittorrent-rtr.service=gluetun-svc" # qBittorrent
       - "traefik.http.services.gluetun-svc.loadbalancer.server.port=8080" # qBittorrent
       # slskd (Soulseek)
       - "traefik.http.routers.gluetun-slskd-rtr.entrypoints=websecure"
       - "traefik.http.routers.gluetun-slskd-rtr.rule=Host(`slskd.$DOMAINNAME`)"
-      - "traefik.http.routers.gluetun-slskd-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.gluetun-slskd-rtr.middlewares=chain-lan-oauth@file"
       - "traefik.http.routers.gluetun-slskd-rtr.service=gluetun-slskd-svc"
       - "traefik.http.services.gluetun-slskd-svc.loadbalancer.server.port=5030"
       # Homepage Setup

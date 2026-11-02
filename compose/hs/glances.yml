@@ -45,7 +45,7 @@ services:
       - "traefik.http.routers.glances-rtr.priority=99"
       # Middlewares
       # - "traefik.http.routers.glances-rtr-bypass.middlewares=chain-no-auth@file"
-      - "traefik.http.routers.glances-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.glances-rtr.middlewares=chain-lan-oauth@file"
       # HTTP Services
       - "traefik.http.routers.glances-rtr.service=glances-svc"
       - "traefik.http.routers.glances-rtr-bypass.service=glances-svc"

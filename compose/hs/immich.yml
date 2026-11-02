@@ -5,6 +5,8 @@ services:
     volumes:
       - ${DOCKERDIR}/appdata/immich/upload:/usr/src/app/upload
       - /etc/localtime:/etc/localtime:ro
+    devices:
+      - /dev/dri:/dev/dri # Quick Sync for video transcoding (set in Administration → Video Transcoding)
     environment:
       - TZ=$TZ
       - DB_HOSTNAME=immich_postgres
@@ -39,7 +41,9 @@ services:
 
   immich-machine-learning:
     container_name: immich_machine_learning
-    image: ghcr.io/immich-app/immich-machine-learning:release
+    image: ghcr.io/immich-app/immich-machine-learning:release-openvino # runs face/search models on the iGPU
+    devices:
+      - /dev/dri:/dev/dri
     volumes:
       - ${DOCKERDIR}/appdata/immich/model-cache:/cache
     environment:

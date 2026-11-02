@@ -24,7 +24,7 @@ services:
       - "traefik.http.routers.victoriametrics-rtr.entrypoints=websecure"
       - "traefik.http.routers.victoriametrics-rtr.rule=Host(`victoriametrics.$DOMAINNAME`)"
       # Middlewares
-      - "traefik.http.routers.victoriametrics-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.victoriametrics-rtr.middlewares=chain-lan-oauth@file"
       # HTTP Services
       - "traefik.http.routers.victoriametrics-rtr.service=victoriametrics-svc"
       - "traefik.http.services.victoriametrics-svc.loadbalancer.server.port=8428"

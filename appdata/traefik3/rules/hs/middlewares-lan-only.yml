@@ -1,0 +1,13 @@
+http:
+  middlewares:
+    # Only allow clients on the LAN. Tailscale users count as LAN: the subnet
+    # router on the Proxmox host (192.168.0.10) NATs them to its own address.
+    # Uses the TCP source address, not X-Forwarded-For, so it can't be spoofed.
+    middlewares-lan-only:
+      ipAllowList:
+        sourceRange:
+          - 127.0.0.1/32
+          - 192.168.0.0/16
+          - 10.0.0.0/8
+          - 172.16.0.0/12
+          - 100.64.0.0/10 # Tailscale, in case a client connects without NAT
