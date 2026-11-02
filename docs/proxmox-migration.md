@@ -515,16 +515,21 @@ The UPS USB cable is plugged into the MS-01, so the Proxmox host sees it directl
 Deferred. Until this phase starts, the Synology stays the NAS, and Phases 0–3 assume it.
 
 ### 4.1 Buy and build
+- [ ] Re-check prices before buying. RAM, SSD and HDD prices moved a lot in 2026.
 - [ ] Parts:
   - i3-14100 or 12100, B760M (micro-ATX) board with 4+ SATA ports and 2+ PCIe slots
   - 16 GB RAM
-  - Fractal Node 804 or Jonsbo N5
-  - 450–550 W 80+ Gold power supply
+  - **Case: Jonsbo N6.** 9 hot-swap bays (3.5" or 2.5"), micro-ATX, ATX or SFX power supply, about $175–185 in late 2026. Nine 20 TB drives with dual parity is about 140 TB usable.
+    - Each drive has its own SATA cable (no SAS backplane), so beyond the board's ports you'll need the HBA below.
+    - Cooling relies on the fans: set a proper fan curve, and consider quieter replacements for the stock fans. Reviews measured 25–28 °C idle and about 42 °C under load, 37–44 dBA.
+    - Quieter, cheaper alternative without hot-swap: Fractal Node 804.
+  - 450–550 W 80+ Gold power supply (ATX or SFX)
   - Intel X710-DA2 or ConnectX-4 Lx (used)
   - SFP+ DAC cable
   - USB stick (Samsung Bar or SanDisk Fit)
   - 4× 20 TB drives (or 3 to start)
-- [ ] Build it. In the BIOS: Restore on AC power loss = Power On, set the USB stick to boot first, and enable ASPM/C-states so it idles at low power.
+  - Later, past the board's SATA ports: a used LSI 9300-8i (IT mode) HBA plus 2× SFF-8643-to-4×SATA breakout cables
+- [ ] Build it. In the BIOS: Restore on AC power loss = Power On, set the USB stick to boot first, enable ASPM/C-states so it idles at low power, and set the fan curves.
 - [ ] **Burn in every drive before trusting it** (1–2 days): an extended SMART test, then a full write/read pass (`badblocks -wsv`, or Unraid's Preclear plugin).
 
 ### 4.2 Install Unraid
