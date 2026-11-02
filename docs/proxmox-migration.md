@@ -555,4 +555,5 @@ Deferred. Until this phase starts, the Synology stays the NAS, and Phases 0–3 
 ### 4.5 Turn the old Synology into the backup target
 - [ ] After a week on the new NAS, wipe the Synology and create a `backups` share.
 - [ ] Back up `photos`, `documents` and `backups` from the NAS to the Synology nightly (Kopia, restic or rsync), and to Backblaze B2 or similar for an offsite copy. Media doesn't need a backup.
-- [ ] Later: install Proxmox Backup Server on the NAS for faster, incremental VM backups.
+- [ ] Install Proxmox Backup Server on the NAS (a VM on Unraid, datastore on local disks) for incremental VM backups. A weekly `hs` backup drops from ~75 min / 163 GB to a few minutes.
+  - Tried on 2026-11-01 as an unprivileged LXC on the MS-01 with the datastore on Synology NFS: doesn't work. PBS requires its chunk folders to be owned by `backup` with mode 750, and the container's root can't traverse them over NFS. If PBS ever has to use NFS, run it in a VM or a privileged container.
