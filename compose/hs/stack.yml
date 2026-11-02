@@ -1,4 +1,4 @@
-# hs - Home Server (Ubuntu, Proxmox LXC)
+# hs - Home Server (Ubuntu VM on Proxmox, MS-01)
 # Everything that runs on this host: networks, secrets and the list of services.
 # Paths in `include` are relative to this folder.
 
@@ -55,9 +55,8 @@ include:
   - crowdsec.yml
   - traefik-bouncer.yml
 
-  # NETWORK
+  # NETWORK (AdGuard runs in the Proxmox `dns` LXC, 192.168.0.53)
   - gluetun.yml
-  - adguard.yml
   - rustdesk.yml
 
   # DASHBOARDS & WEB
@@ -86,14 +85,11 @@ include:
   - audiobookshelf.yml
   - navidrome.yml
 
-  # HOME AUTOMATION
-  - homeassistant.yml
+  # HOME AUTOMATION (Home Assistant, Mosquitto and Piper run in the Proxmox `haos` VM, 192.168.0.57)
   - ha-fusion.yml
   - homebridge.yml
-  - mosquitto.yml
   - frigate.yml
   - music-assistant.yml
-  - piper.yml
 
   # APPS
   - actual.yml

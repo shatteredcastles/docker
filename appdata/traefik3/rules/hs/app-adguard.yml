@@ -1,0 +1,16 @@
+http:
+  routers:
+    adguard-rtr:
+      rule: "Host(`adguard.shatteredcastle.com`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - chain-oauth
+      service: adguard-svc
+      tls:
+        certResolver: dns-cloudflare
+  services:
+    adguard-svc:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.0.53:80"  # dns LXC on Proxmox

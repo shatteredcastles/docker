@@ -23,3 +23,23 @@
               params:
                 showName: true
 
+
+# Services that run outside Docker on Proxmox. Docker-label services in the
+# same groups are merged in automatically.
+- Smart Home:
+    - Home Assistant:
+        icon: home-assistant.png
+        href: https://haos.shatteredcastle.com
+        siteMonitor: http://192.168.0.57:8123
+        description: haos VM
+
+- Monitoring:
+    - AdGuard Home:
+        icon: adguard-home.png
+        href: https://adguard.shatteredcastle.com
+        description: dns LXC
+        widget:
+          type: adguard
+          url: http://192.168.0.53:80
+          username: "{{HOMEPAGE_VAR_ADGUARD_USERNAME}}"
+          password: "{{HOMEPAGE_VAR_ADGUARD_PASSWORD}}"
