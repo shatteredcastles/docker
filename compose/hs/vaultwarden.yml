@@ -22,7 +22,7 @@ services:
     volumes:
       # - $DOCKERDIR/appdata/vaultwarden:/config
       # - $USERDIR:/usr
-      - $DATADIR:/data
+      - $DOCKERDIR/appdata/vaultwarden:/data # local NVMe mirror; was the Synology Data share (SQLite doesn't belong on NFS)
       # - $MEDIADIR:/media
 
     environment:
