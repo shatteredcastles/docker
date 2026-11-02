@@ -470,7 +470,7 @@ The UPS USB cable is plugged into the MS-01, so the Proxmox host sees it directl
 - [x] Make admin apps **LAN/Tailscale only** with an IP-allowlist middleware chain: VS Code, Kasm, Firefox, Portainer, Dozzle, the *arr apps, qBittorrent, Glances. Tailscale clients reach Traefik from the subnet router's address, `192.168.0.10`, which is already in `LOCAL_IPS`.
 - [x] **gluetun port forwarding**: `VPN_PORT_FORWARDING=on`, a non-US PIA region (Canada), and automatic qBittorrent port updates. Or switch to a provider with WireGuard and port forwarding, such as ProtonVPN or AirVPN.
 - [x] **Immich**: switch to the `immich-machine-learning:release-openvino` image (done 2026-11-01).
-  - [ ] Turn on QSV under **Administration → Video transcoding → Hardware acceleration** (in the Immich UI).
+  - [x] Turn on QSV under **Administration → Video transcoding → Hardware acceleration** (in the Immich UI).
 - [x] **Frigate**: set `ffmpeg.hwaccel_args: preset-intel-qsv-h264` (or `-h265`, depending on your cameras), and run detection on the cameras' substreams.
 - [x] **Jellyfin**: **Dashboard → Playback → Transcoding**:
   - Intel QuickSync (QSV), device `/dev/dri/renderD128`
