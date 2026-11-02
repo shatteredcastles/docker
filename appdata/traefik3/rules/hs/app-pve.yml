@@ -1,0 +1,20 @@
+http:
+  routers:
+    # Proxmox VE web UI. LAN/Tailscale only; Proxmox has its own login.
+    # No OAuth or rate limit: both get in the way of the console and the UI's polling.
+    pve-rtr:
+      rule: "Host(`pve.{{env "DOMAINNAME"}}`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - middlewares-lan-only
+      service: pve-svc
+      tls:
+        certResolver: dns-cloudflare
+        options: tls-opts@file
+  services:
+    pve-svc:
+      loadBalancer:
+        serversTransport: selfsigned-transport
+        servers:
+          - url: "https://192.168.0.10:8006"

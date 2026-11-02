@@ -1,0 +1,5 @@
+http:
+  serversTransports:
+    # For LAN backends that only offer self-signed HTTPS (Proxmox, Synology DSM)
+    selfsigned-transport:
+      insecureSkipVerify: true
