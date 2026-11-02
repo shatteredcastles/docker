@@ -1,3 +1,10 @@
+---
+# https://gethomepage.dev/configs/services/
+# Most services come from Docker labels (`homepage.*` in compose/hs/*.yml).
+# This file holds the calendar and services that run outside Docker on
+# Proxmox; label services in the same groups are merged in automatically.
+# {{HOMEPAGE_VAR_*}} values are set in compose/hs/homepage.yml from .env.
+
 - Calendar:
     - " ":
         widget:
@@ -17,15 +24,12 @@
               service_name: Radarr
               color: teal
             - type: ical
-              url: https://calendar.google.com/calendar/ical/jeearle%40gmail.com/private-b8b8a770c8ef9aa064fb552e6d61b376/basic.ics
+              url: "{{HOMEPAGE_VAR_GCAL_ICAL_URL}}"
               name: My Events
               color: zinc
               params:
                 showName: true
 
-
-# Services that run outside Docker on Proxmox. Docker-label services in the
-# same groups are merged in automatically.
 - Smart Home:
     - Home Assistant:
         icon: home-assistant.png

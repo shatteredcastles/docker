@@ -1,22 +1,21 @@
 ---
-# For configuration options and examples, please see:
-# https://gethomepage.dev/latest/configs/settings
-  
-title: Shattered Castle 
-theme: dark # <----- add this line
-color: slate # <----- add this line
-#headerStyle: clean # underlined, boxed, clean, boxedWidgets
+# https://gethomepage.dev/configs/settings/
+
+title: Shattered Castle
+theme: dark
+color: slate
 
 background:
   image: /images/Dall-E image.png
-  blur: sm # sm, "", md, xl... see https://tailwindcss.com/docs/backdrop-blur
-  saturate: 50 # 0, 50, 100... see https://tailwindcss.com/docs/backdrop-saturate
-  brightness: 75 # 0, 50, 75... see https://tailwindcss.com/docs/backdrop-brightness
-  opacity: 50 # 0-100  
+  blur: sm
+  saturate: 50
+  brightness: 75
+  opacity: 50
 
-# useEqualHeights: true
-# showStats: false
+# Groups and tabs. Docker-label services pick their group with
+# `homepage.group=...`; services outside Docker are in services.yaml.
 layout:
+  # Home
   - Calendar:
       tab: Home
       header: false
@@ -24,30 +23,29 @@ layout:
       tab: Home
       style: row
       columns: 3
+  - Files:
+      tab: Home
+      style: row
+      columns: 3
+
+  # Media
   - Media:
       tab: Media
       style: row
       columns: 3
-  - Requests:
-      tab: Media
-      style: row
   - Media Stack:
       tab: Media
       style: row
       columns: 3
+
+  # Money
   - Finance:
       tab: Money
       style: row
       columns: 3
-  - Productivity:
-      tab: Money
-      style: row
-      columns: 3
+
+  # Infra
   - Monitoring:
-      tab: Infra
-      style: row
-      columns: 3
-  - Docker & Management:
       tab: Infra
       style: row
       columns: 3
@@ -55,11 +53,3 @@ layout:
       tab: Infra
       style: row
       columns: 3
-
-
-
-
-
-providers:
-    openweathermap: openweathermapapikey
-    weatherapi: weatherapiapikey

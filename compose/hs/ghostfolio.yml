@@ -33,11 +33,9 @@ services:
 
       # Service widget config
       - homepage.widget.type=ghostfolio
-      # Use the URL that Homepage can reach (internal Docker URL is usually best)
       - homepage.widget.url=http://ghostfolio:3333
-      # This is the Bearer token you get from the Ghostfolio API (see below)
+      # JWT that expires after ~6 months; renew with scripts/hs/ghostfolio-token.sh
       - homepage.widget.key=$GHOSTFOLIO_BEARER_TOKEN
-      # Optional: choose which performance fields to display
       - homepage.widget.fields=["gross_percent_today","gross_percent_1y","gross_percent_max"]
   ghostfolio-db:
     image: postgres:16-alpine

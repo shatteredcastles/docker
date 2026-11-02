@@ -14,11 +14,11 @@ services:
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
-    
+
     volumes:
       - $DOCKERDIR/appdata/homepage:/app/config
       - $USERDIR/Pictures:/app/public/images
-      - /:/host:ro
+      # Mount points for the disk widgets in appdata/homepage/widgets.yaml
       - $MEDIADIR:/mnt/media:ro
       - $DOWNLOADSDIR:/mnt/downloads:ro
       - $DATADIR:/mnt/data:ro
@@ -28,10 +28,10 @@ services:
       PUID: $PUID
       PGID: $PGID
       HOMEPAGE_ALLOWED_HOSTS: $DOMAINNAME, $SERVER_IP:$homepage_port
-      IMMICH_API_KEY: $IMMICH_API_KEY
-      # For services outside Docker, defined in appdata/homepage/services.yaml
+      # {{HOMEPAGE_VAR_*}} placeholders in appdata/homepage/services.yaml
       HOMEPAGE_VAR_ADGUARD_USERNAME: $ADGUARD_USERNAME
       HOMEPAGE_VAR_ADGUARD_PASSWORD: $ADGUARD_PASSWORD
+      HOMEPAGE_VAR_GCAL_ICAL_URL: $GCAL_ICAL_URL
 
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1"]
