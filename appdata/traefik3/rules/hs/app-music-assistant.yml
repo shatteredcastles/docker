@@ -1,0 +1,25 @@
+http:
+  routers:
+    # Music Assistant (host networking on hs, so routed by IP). LAN/Tailscale only.
+    # HTTPS so the HA wall dashboard can iframe it when HA is served over https.
+    music-assistant-rtr:
+      rule: "Host(`music.{{env "DOMAINNAME"}}`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - middlewares-lan-only
+        - music-assistant-frame
+      service: music-assistant-svc
+      tls:
+        certResolver: dns-cloudflare
+        options: tls-opts@file
+  middlewares:
+    # Only Home Assistant may embed it.
+    music-assistant-frame:
+      headers:
+        contentSecurityPolicy: "frame-ancestors 'self' https://haos.{{env "DOMAINNAME"}} http://192.168.0.57:8123"
+  services:
+    music-assistant-svc:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.0.56:8095"
