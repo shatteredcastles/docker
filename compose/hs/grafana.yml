@@ -16,17 +16,16 @@ services:
       - $DOCKERDIR/appdata/grafana:/var/lib/grafana
     environment:
       GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource,grafana-worldmap-panel,grafana-piechart-panel"
-      # 1. Enable anonymous access
-      GF_AUTH_ANONYMOUS_ENABLED: true               # :contentReference[oaicite:0]{index=0}
-      GF_AUTH_ANONYMOUS_ORG_NAME: "Main Org."       
+      # Grafana's only gate is Google OAuth in front of it (grafana-rtr), so
+      # anyone who gets through is treated as admin; no second login.
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_NAME: "Main Org."
       GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
-
-      # 2. Hide the login form entirely
-      GF_AUTH_DISABLE_LOGIN_FORM: true               # :contentReference[oaicite:1]{index=1}
-
-      # 3. (Optional) Turn off basic username/password auth
-      GF_AUTH_BASIC_ENABLED: false  
-      GF_SECURITY_ALLOW_EMBEDDING: true 
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      GF_AUTH_BASIC_ENABLED: "false"
+      # Home Assistant embeds Grafana via *public dashboards*
+      # (Share -> Share externally), served without OAuth by grafana-public-rtr.
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
     labels:
       - "traefik.enable=true"
       # HTTP Routers
@@ -40,7 +39,11 @@ services:
       # AUTO-UPDATE: weekly update-containers.sh; Diun skips these
       - "homelab.auto-update=true"
       - "diun.enable=false"
-      # Iframe Bypass Router (NO auth, only if header is present)
-      - "traefik.http.routers.grafana-embed-rtr.entrypoints=websecure"
-      - "traefik.http.routers.grafana-embed-rtr.rule=Host(`grafana.$DOMAINNAME`) && ClientIP(`$PUBLIC_IP`)" 
-      - "traefik.http.routers.grafana-embed-rtr.service=grafana-svc"
+      # Public dashboards for Home Assistant iframes: no OAuth, reachable from
+      # anywhere. Only the public-dashboard page, its API and static assets are
+      # exposed; each dashboard needs its own unguessable access token.
+      # No secure-headers middleware: its X-Frame-Options would block the iframe.
+      - "traefik.http.routers.grafana-public-rtr.entrypoints=websecure"
+      - "traefik.http.routers.grafana-public-rtr.rule=Host(`grafana.$DOMAINNAME`) && (PathPrefix(`/public-dashboards/`) || PathPrefix(`/api/public/`) || PathPrefix(`/public/`))"
+      - "traefik.http.routers.grafana-public-rtr.middlewares=middlewares-traefik-bouncer@file,middlewares-rate-limit@file"
+      - "traefik.http.routers.grafana-public-rtr.service=grafana-svc"
