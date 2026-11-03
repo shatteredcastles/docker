@@ -13,8 +13,9 @@ services:
       - /dev/bus/usb:/dev/bus/usb  # Optional: Coral USB
     ports:
       - "5000:5000"
-      # RTSP restream for Home Assistant (host network, connects via 127.0.0.1)
-      - "127.0.0.1:8554:8554"
+      # RTSP restream for Home Assistant, which runs in the haos VM (192.168.0.57).
+      # Bound to hs's LAN address only.
+      - "192.168.0.56:8554:8554"
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - $DOCKERDIR/appdata/frigate/config:/config
