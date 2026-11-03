@@ -15,13 +15,28 @@ services:
       - MAX_WORKERS=1
       - WEB_CONCURRENCY=1
       - BASE_URL=https://mealie.${DOMAINNAME}
+      # At home, Traefik signs people in as the shared non-admin "household" user
+      # (mealie-lan router below). The secret stops anyone else, including requests
+      # straight to port 9925, from faking the header.
+      - REVERSE_PROXY_AUTH_ENABLED=true
+      - REVERSE_PROXY_AUTH_HEADER=X-Forwarded-User
+      - REVERSE_PROXY_AUTH_SECRET=${MEALIE_PROXY_AUTH_SECRET}
+      - REVERSE_PROXY_AUTH_SIGNUP_ENABLED=${MEALIE_PROXY_AUTH_SIGNUP:-false}
     networks:
       - t3_proxy
     labels:
       - "traefik.enable=true"
+      # From outside: Mealie's own login
       - "traefik.http.routers.mealie.entrypoints=websecure"
       - "traefik.http.routers.mealie.rule=Host(`mealie.${DOMAINNAME}`)"
       - "traefik.http.routers.mealie.service=mealie"
       - "traefik.http.services.mealie.loadbalancer.server.port=9000"
+      # From the LAN/Tailscale (Tailscale is NATed to 192.168.0.10): signed in as "household"
+      - "traefik.http.routers.mealie-lan.entrypoints=websecure"
+      - "traefik.http.routers.mealie-lan.rule=Host(`mealie.${DOMAINNAME}`) && (ClientIP(`192.168.0.0/16`) || ClientIP(`100.64.0.0/10`))"
+      - "traefik.http.routers.mealie-lan.service=mealie"
+      - "traefik.http.routers.mealie-lan.middlewares=mealie-household-auth"
+      - "traefik.http.middlewares.mealie-household-auth.headers.customrequestheaders.X-Forwarded-User=household"
+      - "traefik.http.middlewares.mealie-household-auth.headers.customrequestheaders.X-Mealie-Reverse-Proxy-Secret=${MEALIE_PROXY_AUTH_SECRET}"
       - "homelab.auto-update=true"
       - "diun.enable=false"
